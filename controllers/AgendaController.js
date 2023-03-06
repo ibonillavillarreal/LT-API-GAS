@@ -58,6 +58,18 @@ const EditAgenda = async (request, response, next) => {
   }
 }
 
+const DelEditAgenda = async (request, response, next) => {
+
+  console.log(' llegando al controlador ')
+  try {
+    let json_id = { ...request.body }
+    //let data = await DBAgendas.DelEditAgenda(json_id)
+    return 1;  //response.json(data);
+  } catch (error) {
+    next(error)
+  }
+}
+
 
 
 module.exports = {
@@ -65,6 +77,7 @@ module.exports = {
   getAgenda: getAgenda,
   getNroAgenda: getNroAgenda,
   add_Agenda: add_Agenda,
-  EditAgenda: EditAgenda
+  EditAgenda: EditAgenda,
+  DelEditAgenda:DelEditAgenda
 };
 

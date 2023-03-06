@@ -8,7 +8,7 @@ const conexion = require('../config/conexion')
 
 
 const add_Agenda = async (json_Agenda) => {
-  try {    
+  try {
 
     let MasterAgenda = json_Agenda.Master_Agenda;
 
@@ -23,8 +23,8 @@ const add_Agenda = async (json_Agenda) => {
       .input('EstadoRegsistro', sql.Int, 1)
       .input('IdUsuario', sql.Int, MasterAgenda.IdUsuario)
       .input('Operacion', sql.Int, 2)
-    //output('return_value',sql.Int,0)
-      .execute('Legales.p_SavetbAgendas')         
+      //output('return_value',sql.Int,0)
+      .execute('Legales.p_SavetbAgendas')
     let CodAgenda = retorno_CodAgenda.returnValue;
 
     //- - -
@@ -51,7 +51,7 @@ const add_Agenda = async (json_Agenda) => {
     let ultimoRetornoPuntos;
 
     DetallePuntosAgenda.forEach(reg_DetPuntos => {
-      
+
       let retorno_DetalleAsistencia = mssql.request()
         .input('CodAgendaDetalles', sql.Int, 0)
         .input('CodAgenda', sql.Int, CodAgenda)
@@ -67,7 +67,7 @@ const add_Agenda = async (json_Agenda) => {
     });
 
     // - - - 
-      return 1;
+    return 1;
 
   } catch (err) {
     console.log(err);
@@ -75,10 +75,9 @@ const add_Agenda = async (json_Agenda) => {
 }
 
 const editAgenda = async (json_Agenda) => {
-
   try {
-    
-    //console.log(' EDITAR Agenda : '+ JSON.stringify(json_Agenda));
+
+    //console.log(' EDITANDO Agenda CON DELETE : '+ JSON.stringify(json_Agenda));
 
     let MasterAgenda = json_Agenda.Master_Agenda;
 
@@ -92,9 +91,21 @@ const editAgenda = async (json_Agenda) => {
       .input('FechaRegSistema', sql.Date, Date(new Date()))
       .input('EstadoRegsistro', sql.Int, 1)
       .input('IdUsuario', sql.Int, MasterAgenda.IdUsuario)
-      .input('Operacion', sql.Int, 4)    
-      .execute('Legales.p_SavetbAgendas')         
+      .input('Operacion', sql.Int, 4)
+      .execute('Legales.p_SavetbAgendas')
     let CodAgenda = retorno_CodAgenda.returnValue;
+
+    //- - -  limpia los item eliminados
+    let itemDelete = json_Agenda.DeleteItem_AgendaAsistencia;
+    if (itemDelete[0] > 0) {
+      let retorno_itemDel
+      itemDelete.forEach(item => {
+        let itemDel_Asistencia = mssql.request()
+          .input('CodCuorum', sql.Int, item)
+          .execute('Legales.p_DeletetbRepresentantes')
+        retorno_itemDel = itemDel_Asistencia.returnValue;
+      });
+    }
 
     //- - -
     let DetalleAsistencia = json_Agenda.Detalle_Asistencia;
@@ -115,12 +126,23 @@ const editAgenda = async (json_Agenda) => {
       ultimoRetorno = retorno_DetalleAsistencia.returnValue
     });
 
+    //- - - 
+    //- - -  limpia Puntos_Agendas item eliminados
+    let item_Puntos_Delete = json_Agenda.Delete_PuntosAgenda;
+    if (item_Puntos_Delete[0] > 0) {
+      let retorno_Puntos_itemDel
+      item_Puntos_Delete.forEach(puntos => {
+        let itemDel_Puntos = mssql.request()
+          .input('CodAgendaDetalles', sql.Int, puntos)
+          .execute('Legales.p_DeletetbAgendaDetalles')
+        retorno_Puntos_itemDel = itemDel_Puntos.returnValue;
+      });
+    }
     // - - - 
     let DetallePuntosAgenda = json_Agenda.Detalle_PuntosAgenda;
     let ultimoRetornoPuntos;
 
     DetallePuntosAgenda.forEach(reg_DetPuntos => {
-      
       let retorno_DetalleAsistencia = mssql.request()
         .input('CodAgendaDetalles', sql.Int, reg_DetPuntos.CodAgendaDetalles)
         .input('CodAgenda', sql.Int, MasterAgenda.CodAgenda)
@@ -136,7 +158,7 @@ const editAgenda = async (json_Agenda) => {
     });
 
     // - - - 
-      return 1;
+    return 1;
 
   } catch (edit_err) {
     console.log(edit_err);
@@ -215,12 +237,27 @@ const getAgendaId = async (id) => {
 }
 
 
+const DelEditAgenda = async (json_id) => {
+  try {
+    let pool = await sql.connect(conexion);
+    let salida = await pool.request()
+      .input('CodCuorum', sql.Int, json_id.id)
+    //.input('estado', sql.Int, 1)
+    //.execute('Legales.p_DeletetbRepresentantes')
+    return salida.returnValue;
+  } catch (err) {
+    console.log(err);
+    return 0;
+  }
+}
+
 
 module.exports = {
   getAgendaId: getAgendaId,
   getAgenda: getAgenda,
   getNroAgenda: getNroAgenda,
   add_Agenda: add_Agenda,
-  editAgenda: editAgenda
+  editAgenda: editAgenda,
+  DelEditAgenda: DelEditAgenda
 };
 
