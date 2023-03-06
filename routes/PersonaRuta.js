@@ -1,9 +1,11 @@
-﻿//getCliente,  getClientes,  addCliente,  editCliente,  anularCliente,  activarCliente,  getClienteEdit
+﻿
+
+
 const personaController = require('../controllers/PersonaController');
 
 
 const router = require('express').Router();
-router.get('/:id', personaController.getCliente);        // traer 1       
+router.get('/:id', personaController.getPersona);        // traer 1       
 router.get('/Edit/:id', personaController.getClienteEdit);        // traer 1       
 router.get('/', personaController.getClientes);          // traer todos    
 router.post('/', personaController.addCliente);

@@ -1,4 +1,5 @@
-﻿//usuariosGet,usuariosPost,usuariosPut,usuariosPatch,usuariosDelete,
+﻿
+
 const UsuarioController = require('../controllers/UsuarioController');
 
 const  router  = require('express').Router();

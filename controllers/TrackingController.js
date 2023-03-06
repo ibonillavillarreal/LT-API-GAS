@@ -20,7 +20,7 @@ const aplicarSiguienteEstacion = async (request, response,next) => {
     next(ex)
   } 
 }
-const getRastreo = async (request, response,next) => {
+const getRastreaEstacion = async (request, response,next) => {
   try{
     DBTracking.getRastreo(request.params.id).then((data) => {
       response.json(data);
@@ -32,5 +32,5 @@ const getRastreo = async (request, response,next) => {
 module.exports = {
     getOrdenEstacion,
     aplicarSiguienteEstacion,
-    getRastreo
+    getRastreaEstacion: getRastreaEstacion
 }

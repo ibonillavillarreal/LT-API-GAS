@@ -1,3 +1,4 @@
+
 const http = require('http');
 const { resolve } = require('path');
 const { rejects } = require('assert');
@@ -7,7 +8,7 @@ function verifyToken(req, res, next) {
     const tkn = req.headers['x-auth-token']; 
     let data = '';
     return new Promise((resolve, rejects) => {
-        http.get('http://192.168.1.zzz:3000/verify/' + tkn, (res) => {
+        http.get('http://xxx.xxx.yyy.zzz:3000/verify/' + tkn, (res) => {
             res.on('data', (chunk) => {
                 data += chunk;
                 if (data === 'true')

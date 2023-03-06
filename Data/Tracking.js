@@ -6,9 +6,9 @@ const getOrdenEstacion = async (num) => {
     console.log(num)
     let mssql = await sql.connect(conexion);
     let salida = await mssql.request()
-    .input('id_numero_orden', sql.VarChar, num)
-    .input('id_tipo', sql.Int,1)
-      .execute('mp_orden_estacion_get_byNum');
+    .input('', sql.VarChar, num)
+    .input('', sql.Int,1)
+      .execute('');
       console.log(salida.recordsets[0][0]);
     return salida.recordsets[0];
   } catch (e) {
@@ -21,10 +21,10 @@ const aplicarSiguienteEstacion = async (id) => {
   try {
     let mssql = await sql.connect(conexion);
     let salida = await mssql.request()
-      .input('numero_orden', sql.Int, id)
-      .input('id_usuario', sql.Int, 5)
-      .output('return_value',sql.Int,0)
-      .execute('sp_orden_proceso_update');
+      .input('', sql.Int, id)
+      .input('', sql.Int, 5)
+      .output('',sql.Int,0)
+      .execute('');
       console.log(salida.recordsets[0][0])
     return salida.recordsets[0];
   } catch (e) {
@@ -36,8 +36,8 @@ const getRastreo = async (id) => {
   try {
     let mssql = await sql.connect(conexion);
     let salida = await mssql.request()
-      .input('id_orden', sql.Int, id)
-      .execute('mp_orden_rastreo_get_byId');
+      .input('', sql.Int, id)
+      .execute('');
     return salida.recordsets[0];
   } catch (e) {
     console.log(e)

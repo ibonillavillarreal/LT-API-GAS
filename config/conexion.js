@@ -1,6 +1,6 @@
 
 require('dotenv').config()
-const conexion = {
+const conexion2 = {
     user:'sa',
     password:'123',
     database:'SIGA-CNU',
@@ -12,11 +12,11 @@ const conexion = {
      }
 }
 
-const conexion2 = {
+const conexion = {
     user:'sa',
     password:'123',
     database:'SIGA-CNU',    
-    server:'PC-BONILLA',
+    server:'DESKTOP-S1FMAIS',
      options:{
          trustedconnection:false,
          enableArithAbort:true,

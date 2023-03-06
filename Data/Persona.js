@@ -1,3 +1,4 @@
+
 "use strict"
 const sql = require('mssql')
 const DICTIONARY_KEYS = require('../Utils/DICTIONARY_KEYS')
@@ -68,14 +69,8 @@ const addCliente = async (persona) => {
 }
 
 
-
-
-
-
 const editPersona = async (persona) => {
-  try {
-    console.log(' LLegando al Edit  '+persona.CodMiembro)
-
+  try {  
     let pool = await sql.connect(conexion);
     let edtPersona = await pool.request()
     .input('CodMiembro',sql.Int,persona.CodMiembro)
@@ -103,8 +98,7 @@ const editPersona = async (persona) => {
   }
 }
 
-const anularCliente = async (id_User) => {
-  
+const anularCliente = async (id_User) => {  
   try {
     let pool = await sql.connect(conexion);
     let salida = await pool.request()
@@ -120,22 +114,6 @@ const anularCliente = async (id_User) => {
   }
 }
 
-const activarCliente = async (id) => {
-  
-  try {
-    let pool = await sql.connect(conexion);
-    let salida = await pool.request()
-      .input('CLIENTE', sql.NVarChar, id)
-      .input('ACTIVO', sql.VarChar, DICTIONARY_KEYS.ACTIVO_1)
-      .execute('sp_SaveCLIENTE_ESTADO')
-
-    return salida.rowsAffected;
-  } catch (err) {
-    console.log('id activando: ');
-    console.log(err);
-    return 0;
-  }
-}
 
 
 const getClienteEdit = async (id) => {
@@ -146,63 +124,15 @@ const getClienteEdit = async (id) => {
     let salida = await mssql.request()
     .input('CdoMiembro', sql.Int, id)
     .input('EstadoRegistro', sql.Int,1)
-    .execute('RRHH.p_GettbMiembros');
-      //console.log(salida.recordset)
+    .execute('RRHH.p_GettbMiembros');      
     return salida.recordsets;
 
   } catch (e) {
-    console.log(e)
-    cosole.log("id cliente no corresponde en la tupla")
+    console.log(e)    
   }
 }
 
-const addClienteAgente = async (cliente) => {  
-try {
 
-  let pool = await sql.connect(conexion);
-  let insertCliente = await pool.request()
-    /***CLIENTE***/     
-    .input('CLIENTE', sql.NVarChar, cliente.CLIENTE)
-    .input('RUC', sql.NVarChar, cliente.ruc)
-    .input('CONTRIBUYENTE', sql.NVarChar, cliente.CONTRIBUYENTE)
-    .input('NOMBRE', sql.NVarChar, cliente.NOMBRE)
-    .input('DIRECCION', sql.NVarChar, cliente.DIRECCION)
-    .input('EMAIL', sql.NVarChar, cliente.EMAIL)
-    .input('TELEFONO1', sql.NVarChar, cliente.TELEFONO1)
-    .input('TELEFONO2',sql.NVarChar,cliente.TELEFONO2)
-    .input('paisId',sql.Int,cliente.paisId) 
-    .input('departamentoId',sql.Int,cliente.departamentoId) 
-    .input('municipioId',sql.Int,cliente.municipioId)  
-    .input('nombres_repL',sql.NVarChar,cliente.nombres_repL) 
-    .input('apellidos_repL',sql.NVarChar,cliente.apellidos_repL)
-    .input('cedula_repL',sql.NVarChar,cliente.cedula_repL)
-    .input('direccion_repL',sql.NVarChar,cliente.direccion_repL)
-    .input('correo_repL',sql.NVarChar,cliente.correo_repL)
-    .input('telefono1_repL',sql.NVarChar,cliente.telefono1_repL)
-    .input('telefono2_repL',sql.NVarChar,cliente.telefono2_repL)
-    .input('pais_repL',sql.Int,cliente.pais_repL)
-    .input('departamento_repL',sql.Int,cliente.departamento_repL)
-    .input('municipio_repL',sql.Int,cliente.municipio_repL)
-    .input('nombres_repP',sql.NVarChar,cliente.nombres_repP)
-    .input('apellidos_repP',sql.NVarChar,cliente.apellidos_repP)
-    .input('cedula_repP',sql.NVarChar,cliente.cedula_repP)
-    .input('direccion_repP',sql.NVarChar,cliente.direccion_repP)
-    .input('correo_repP',sql.NVarChar,cliente.correo_repP)
-    .input('telefono1_repP',sql.NVarChar,cliente.telefono1_repP)
-    .input('telefono2_repP',sql.NVarChar,cliente.telefono2_repP)
-    .input('pais_repP',sql.Int,cliente.pais_repP)
-    .input('departamento_repP',sql.Int,cliente.departamento_repP)
-    .input('municipio_repP',sql.Int,cliente.municipio_repP)
-    .execute('sp_SaveCLIENTE_AGENTE'); 
-  return insertCliente.rowsAffected;
-  
-}
-catch (err) {
-  console.log(err);
-  return 0;
-
-}
-}
 
 
 module.exports = {
@@ -211,8 +141,6 @@ module.exports = {
   addCliente,
   editPersona: editPersona,
   anularCliente,
-  activarCliente,
-  getClienteEdit,
-  addClienteAgente
+  getClienteEdit
   
 };
