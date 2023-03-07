@@ -16,6 +16,7 @@ const add_Agenda = async (json_Agenda) => {
     let retorno_CodAgenda = await mssql.request()
       .input('CodAgenda', sql.Int, 0)
       .input('IdAgenda', sql.NVarChar, MasterAgenda.IdAgenda)
+      .input('Local',    sql.NVarChar, MasterAgenda.Local)
       .input('DescripcionAgenda', sql.NVarChar, MasterAgenda.DescripcionAgenda)
       .input('EstadoAgenda', sql.Int, 1)
       .input('FechaRegristro', sql.Date, MasterAgenda.FechaRegristro)
@@ -85,6 +86,7 @@ const editAgenda = async (json_Agenda) => {
     let retorno_CodAgenda = await mssql.request()
       .input('CodAgenda', sql.Int, MasterAgenda.CodAgenda)
       .input('IdAgenda', sql.NVarChar, MasterAgenda.IdAgenda)
+      .input('Local',    sql.NVarChar, MasterAgenda.Local)
       .input('DescripcionAgenda', sql.NVarChar, MasterAgenda.DescripcionAgenda)
       .input('EstadoAgenda', sql.Int, 1)
       .input('FechaRegristro', sql.Date, MasterAgenda.FechaRegristro)
@@ -237,13 +239,16 @@ const getAgendaId = async (id) => {
 }
 
 
-const DelEditAgenda = async (json_id) => {
-  try {
+const DelEditAgenda = async (obj) => {
+  try {    
     let pool = await sql.connect(conexion);
     let salida = await pool.request()
-      .input('CodAgenda', sql.Int, json_id.CodAgenda)
-      .input('estado', sql.Int, 0)
-      .execute('Legales.')
+      .input('CodAgenda', sql.Int, obj.CodAgenda)
+      .input('EstadoRegsistro', sql.Int, obj.estado)
+      .input('IdUsuario', sql.Int, obj.idUser)
+      .input('Operacion', sql.Int, 4)
+      .execute('Legales.p_DeletetbAgendas')     
+    
     return salida.returnValue;
   } catch (err) {
     console.log(err);

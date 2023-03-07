@@ -61,8 +61,7 @@ const EditAgenda = async (request, response, next) => {
 const DelEditAgenda = async (request, response, next) => {
 
   try {
-    let json_id = { ...request.body }
-    console.log(' llegando al controlador '+  JSON.stringify(json_id))
+    let json_id = { ...request.body }    
     let data = await DBAgendas.DelEditAgenda(json_id)
     response.json(data);
   } catch (error) {
