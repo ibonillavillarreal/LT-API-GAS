@@ -241,9 +241,9 @@ const DelEditAgenda = async (json_id) => {
   try {
     let pool = await sql.connect(conexion);
     let salida = await pool.request()
-      .input('CodCuorum', sql.Int, json_id.id)
-    //.input('estado', sql.Int, 1)
-    //.execute('Legales.p_DeletetbRepresentantes')
+      .input('CodAgenda', sql.Int, json_id.CodAgenda)
+      .input('estado', sql.Int, 0)
+      .execute('Legales.')
     return salida.returnValue;
   } catch (err) {
     console.log(err);
