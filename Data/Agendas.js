@@ -1,9 +1,11 @@
 
 "use strict"
+
 const sql = require('mssql')
 const DICTIONARY_KEYS = require('../Utils/DICTIONARY_KEYS')
 require('dotenv').config()
-const conexion = require('../config/conexion')
+const conexion = require('../config/conexion');
+const { path } = require('pdfkit');
 
 
 
@@ -16,7 +18,7 @@ const add_Agenda = async (json_Agenda) => {
     let retorno_CodAgenda = await mssql.request()
       .input('CodAgenda', sql.Int, 0)
       .input('IdAgenda', sql.NVarChar, MasterAgenda.IdAgenda)
-      .input('Local',    sql.NVarChar, MasterAgenda.Local)
+      .input('Local', sql.NVarChar, MasterAgenda.Local)
       .input('DescripcionAgenda', sql.NVarChar, MasterAgenda.DescripcionAgenda)
       .input('EstadoAgenda', sql.Int, 1)
       .input('FechaRegristro', sql.Date, MasterAgenda.FechaRegristro)
@@ -78,15 +80,13 @@ const add_Agenda = async (json_Agenda) => {
 const editAgenda = async (json_Agenda) => {
   try {
 
-    //console.log(' EDITANDO Agenda CON DELETE : '+ JSON.stringify(json_Agenda));
-
     let MasterAgenda = json_Agenda.Master_Agenda;
 
     let mssql = await sql.connect(conexion);
     let retorno_CodAgenda = await mssql.request()
       .input('CodAgenda', sql.Int, MasterAgenda.CodAgenda)
       .input('IdAgenda', sql.NVarChar, MasterAgenda.IdAgenda)
-      .input('Local',    sql.NVarChar, MasterAgenda.Local)
+      .input('Local', sql.NVarChar, MasterAgenda.Local)
       .input('DescripcionAgenda', sql.NVarChar, MasterAgenda.DescripcionAgenda)
       .input('EstadoAgenda', sql.Int, 1)
       .input('FechaRegristro', sql.Date, MasterAgenda.FechaRegristro)
@@ -201,8 +201,6 @@ const getNroAgenda = async () => {
 }
 
 
-
-
 const getAgendaId = async (id) => {
   try {
     let json_Agenda;
@@ -230,7 +228,6 @@ const getAgendaId = async (id) => {
     puntos = salida_puntos.recordsets[0];
 
     json_Agenda = { Maestro: maestro, Asistencia: asistencia, PuntosDeAgenda: puntos }
-    //console.log('full agenda '+ JSON.stringify(json_Agenda))
 
     return json_Agenda
   } catch (e) {
@@ -240,15 +237,15 @@ const getAgendaId = async (id) => {
 
 
 const DelEditAgenda = async (obj) => {
-  try {    
+  try {
     let pool = await sql.connect(conexion);
     let salida = await pool.request()
       .input('CodAgenda', sql.Int, obj.CodAgenda)
       .input('EstadoRegsistro', sql.Int, obj.estado)
       .input('IdUsuario', sql.Int, obj.idUser)
       .input('Operacion', sql.Int, 4)
-      .execute('Legales.p_DeletetbAgendas')     
-    
+      .execute('Legales.p_DeletetbAgendas')
+
     return salida.returnValue;
   } catch (err) {
     console.log(err);
@@ -257,12 +254,29 @@ const DelEditAgenda = async (obj) => {
 }
 
 
+const imprimir = async (id) => {
+  
+  try {
+    let mssql = await sql.connect(conexion);
+    let salida_maestro = await mssql.request()
+      .input('CodAgenda', sql.Int, id)
+      .input('EstadoRegsistro', sql.Int, 1)
+      .execute('Legales.p_GettbAgendas');
+    return salida_maestro.recordsets[0][0];    
+
+  } catch (err) {
+    console.log(err);
+    return 0;
+  }
+}
+
 module.exports = {
   getAgendaId: getAgendaId,
   getAgenda: getAgenda,
   getNroAgenda: getNroAgenda,
   add_Agenda: add_Agenda,
   editAgenda: editAgenda,
+  imprimir, imprimir,
   DelEditAgenda: DelEditAgenda
 };
 
