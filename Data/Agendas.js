@@ -6,6 +6,7 @@ const DICTIONARY_KEYS = require('../Utils/DICTIONARY_KEYS')
 require('dotenv').config()
 const conexion = require('../config/conexion');
 const { path } = require('pdfkit');
+const { time } = require('console');
 
 
 
@@ -22,6 +23,7 @@ const add_Agenda = async (json_Agenda) => {
       .input('DescripcionAgenda', sql.NVarChar, MasterAgenda.DescripcionAgenda)
       .input('EstadoAgenda', sql.Int, 1)
       .input('FechaRegristro', sql.Date, MasterAgenda.FechaRegristro)
+      .input('esHora', sql.NVarChar, MasterAgenda.HoraRegristro)   
       .input('FechaRegSistema', sql.Date, Date(new Date()))
       .input('EstadoRegsistro', sql.Int, 1)
       .input('IdUsuario', sql.Int, MasterAgenda.IdUsuario)
@@ -90,12 +92,14 @@ const editAgenda = async (json_Agenda) => {
       .input('DescripcionAgenda', sql.NVarChar, MasterAgenda.DescripcionAgenda)
       .input('EstadoAgenda', sql.Int, 1)
       .input('FechaRegristro', sql.Date, MasterAgenda.FechaRegristro)
+      .input('esHora', sql.NVarChar, MasterAgenda.HoraRegristro)   
       .input('FechaRegSistema', sql.Date, Date(new Date()))
       .input('EstadoRegsistro', sql.Int, 1)
       .input('IdUsuario', sql.Int, MasterAgenda.IdUsuario)
       .input('Operacion', sql.Int, 4)
       .execute('Legales.p_SavetbAgendas')
-    let CodAgenda = retorno_CodAgenda.returnValue;
+    let CodAgenda = retorno_CodAgenda.returnValue;  
+    console.log('Hora como cadaena :' + JSON.stringify(MasterAgenda.HoraRegristro));
 
     //- - -  limpia los item eliminados
     let itemDelete = json_Agenda.DeleteItem_AgendaAsistencia;

@@ -116,6 +116,8 @@ const imprimir = async (req, res, next) => {
     ////  GOTO : dirtecciones 
     let X = 60;
     let Y = 160;
+    let SESION =``
+    if (1){SESION =`SESIÓN EXTRAORDINARIA`}else{SESION =`SESIÓN ORDINARIA`}
 
     //// Pintar la data   
     Doc.image('./rept/logo-cnu.png', X, 45, { fit: [190, 190] }).stroke();
@@ -127,7 +129,7 @@ const imprimir = async (req, res, next) => {
     Doc.font('Times-Bold').fontSize(13).text('Secretario del CNU', X + 90, Y + 75, { width: 400, align: 'left' });
     Doc.moveTo(X + 200, Y + 85).lineTo(X + 200, Y + 85).lineTo(X + 350, Y + 85).stroke();
     Doc.font('Times-Bold').fontSize(13).text('Ref:', X, Y + 115, { width: 400, align: 'left' });
-    Doc.font('Times-Bold').fontSize(13).text(`SESION EXTRAORDINARIA No. ${IdAgenda}`, X + 60, Y + 115, { width: 400, });
+    Doc.font('Times-Bold').fontSize(13).text(`${SESION} No. ${IdAgenda}`, X + 60, Y + 115, { width: 400, });
     Doc.moveTo(X + 50, Y + 126).lineTo(X + 50, Y + 126).lineTo(X + 310, Y + 126).stroke();
     Doc.font('Times-Bold').fontSize(13).text('FECHA:', X, Y + 140, { width: 400, align: 'left' });
     Doc.font('Times-BoldItalic').fontSize(13).text(`${FechaRegSistema}`, X + 60, Y + 140, { width: 400, align: 'left'});
@@ -135,8 +137,8 @@ const imprimir = async (req, res, next) => {
       .text('* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  * * * * * *'
         , X, Y + 155, { width: 500, align: 'left' });
 
-    let strbody = "Estimados(as) miembros del Consejo Nacional de Universidades, doctora Ramona Rodríguez Pérez, ";
-    strbody += "atenta y respetuosamente, se convoca a los honorables miembros a Sesión Extraordinaria No. 03-2023, ";
+    let strbody = "Estimados(as) miembros del Consejo Nacional de Universidades, Doctora Ramona Rodríguez Pérez, ";
+    strbody += `atenta y respetuosamente, se convoca a los honorables miembros a ${SESION} No. ${IdAgenda}, ` ;
     strbody += "del Consejo Nacional de Universidades, la que se realizará segun detalle";
     Doc.font('Times-Roman').fontSize(13).text(`${strbody}`, X, Y + 170, { width: 500, align: 'justify' });
 
