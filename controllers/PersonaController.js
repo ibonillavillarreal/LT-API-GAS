@@ -14,7 +14,8 @@ const getPersona = async (request, response,next) => {
 
 const getClientes = async (request, response,next) => {
     try{  
-      DBPersona.getClientes().then((data) => {
+
+        DBPersona.getClientes().then((data) => {
         response.json(data[0]);
       })
     }catch(ex){

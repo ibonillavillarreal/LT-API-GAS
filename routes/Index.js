@@ -4,8 +4,8 @@ const routerAgenda = require('./AgendaRuta');
 const routerCargo = require('./CargoRuta');
 const routerDelItem = require('./DelItemRoute')
 const routerUsuarioRuta = require('./UsuarioRuta');
-const routerTracking = require('./TrackingRoute')
-
+const routerTracking = require('./TrackingRoute');
+const routerActaListado = require('./ActaListado');
 
 // DEPENDENCIA EXPRESS ´PARA EL ROUTER 
 const router = require("express").Router();
@@ -15,7 +15,7 @@ router.use('/Cargo', routerCargo);
 router.use('/Usuario', routerUsuarioRuta); 
 router.use('/Tracking', routerTracking);
 router.use('/Eliminar', routerDelItem);
-
+router.use('/Acta',routerActaListado);
 
 module.exports = router;
 
