@@ -1,36 +1,25 @@
 ﻿
 
 ///////////// Modulos //////////////////////////////
-const DBAgendas = require('../Data/Acta');
+const DBActas = require('../Data/Acta');
 ////////////////////////////////////////////////////
 
 
-const getActaListado = async (request, response, next) => {  
-  
-   try {
-     DBAgendas.getActaListado().then((data) => {
-       response.json(data[0]);
-     })
-   } catch (ex) {
-     next(ex)
-   }
-}
+const getActaListado = async (request, response, next) => {
 
-const getAgendaId = async (request, response, next) => {
   try {
-    DBAgendas.getAgendaId(request.params.id).then((data) => {
-      response.json(data);
+    DBActas.getActaListado().then((data) => {
+      response.json(data[0]);
     })
   } catch (ex) {
     next(ex)
   }
-
 }
 
-//getNroAgenda
-const getNroAgenda = async (request, response, next) => {
+const getActaDetalle = async (request, response, next) => {
   try {
-    DBAgendas.getNroAgenda().then((data) => {
+
+    DBActas.getActaDetalleId(request.params.id).then((data) => {
       response.json(data);
     })
   } catch (ex) {
@@ -40,20 +29,69 @@ const getNroAgenda = async (request, response, next) => {
 }
 
 
-const add_Agenda = async (request, response, next) => {
+const getNroActa = async (request, response, next) => {
+
   try {
-    let Agenda = { ...request.body };
-    let data = await DBAgendas.add_Agenda(Agenda)
+    DBActas.getNroActa().then((data) => {
+      response.json(data[0][0].newNroIdActa);
+    })
+  } catch (ex) {
+    next(ex)
+  }
+}
+
+const getNroIdAcuerdo = async (request, response, next) => {
+
+  try {
+
+    DBActas.getNroIdAcuerdo().then((data) => {
+      response.json(data);
+    })
+  } catch (ex) {
+    next(ex)
+  }
+}
+
+const getAgendaActa = async (request, response, next) => {
+
+  try {
+    DBActas.getAgendaActa().then((data) => {
+      response.json(data[0]);
+    })
+  } catch (ex) {
+    next(ex)
+  }
+}
+
+const postgetPuntosDeAgenda = async (request, response, next) => {
+  try {
+    let CodAgenda = { ...request.body };
+    let data = await DBActas.postgetPuntosDeAgenda(CodAgenda);
     return response.json(data);
   } catch (error) {
     next(error)
   }
 }
 
+
+
+const Add_Json_Acta = async (request, response, next) => {
+  //console.log('llegando a controlador : ' + JSON.stringify(CodActa));
+  try {
+    let CodActa = { ...request.body };
+    let data = await DBActas.Add_Json_Acta(CodActa);
+    return response.json(data);
+  } catch (error) {
+    next(error)
+  }
+
+}
+
+
 const EditAgenda = async (request, response, next) => {
   try {
     let Agenda = { ...request.body }
-    let data = await DBAgendas.editAgenda(Agenda)
+    let data = await DBActas.editAgenda(Agenda)
     return response.json(data);
   } catch (error) {
     next(error)
@@ -64,7 +102,7 @@ const DelEditAgenda = async (request, response, next) => {
 
   try {
     let json_id = { ...request.body }
-    let data = await DBAgendas.DelEditAgenda(json_id)
+    let data = await DBActas.DelEditAgenda(json_id)
     response.json(data);
   } catch (error) {
     next(error)
@@ -72,135 +110,212 @@ const DelEditAgenda = async (request, response, next) => {
 }
 
 
+
 ////////////////////////////////////////////////////////////////
-const PDFDocument = require('pdfkit-construct');
+const PDFDocument = require('pdfkit-table', 'pdfkit-construct');
 const stream = require('./stream');
 const getStream = require('get-stream');
-const fs = require('fs');
+const { stringify } = require('querystring');
+const { columns } = require('mssql');
+const { options, font, underline } = require('pdfkit');
 
+
+/* class tabla impoprtamos */
+// const PDFDocumentClass = DBActas.PDFDocumentClass;
 const imprimir = async (req, res, next) => {
   try {
+
     ///Create a document  Doc Pdf             
     let buffers = [];
-    var Doc = new PDFDocument({ bufferPages: true, font: 'Courier' });
+    var Doc = new PDFDocument({
+      bufferPages: true, font: 'Courier', size: 'letter',
+      margins: { top: 30, bottom: 50, left: 50, right: 50 }
+    });
     Doc.on('data', buffers.push.bind(buffers));
     Doc.on('end', () => {
       let pdfData = Buffer.concat(buffers);
       res.writeHead(200, {
         'Content-Length': Buffer.byteLength(pdfData),
         'Content-Type': 'application/pdf',
-        'Content-disposition': 'attachment;filename=Agenda.pdf',
+        'Content-disposition': 'attachment;',
       }).end(pdfData);
     });
 
     //// Extraccion de la data   //const strAgenda_Maestro = JSON.stringify(await DBAgendas.imprimir(params_id));
     let params_id = req.params.id;
-    const strAgenda_Completa = await DBAgendas.getAgendaId(params_id);
-    const IdAgenda = strAgenda_Completa.Maestro[0].IdAgenda;
-    
-    
+    const strActa_Completa = await DBActas.getActaId(params_id);
+    //console.log('Data strActa_Completa   : ' + JSON.stringify(strActa_Completa));
+
+    const IdActaSesion = strActa_Completa.Maestro[0].IdSesion;
+    const TipoSesion = strActa_Completa.Maestro[0].TipoSesion;
+
     const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
-    const dia =  (strAgenda_Completa.Maestro[0].FechaRegSistema).getDate()+1;    
-    const mes =  (strAgenda_Completa.Maestro[0].FechaRegSistema).getMonth();    
-    const anio = (strAgenda_Completa.Maestro[0].FechaRegSistema).getFullYear();    
-    const FechaRegSistema = dia +" DE "+ meses[mes] +" DEL "+ anio ; 
-    
-    const r_dia = (strAgenda_Completa.Maestro[0].FechaRegristro).getDate()+1;
-    const r_mes = (strAgenda_Completa.Maestro[0].FechaRegristro).getMonth();
-    const r_anio =(strAgenda_Completa.Maestro[0].FechaRegristro).getFullYear();
-    const FechaRegristro = r_dia +" DE "+ meses[r_mes] +" DEL "+ r_anio ; 
-    
-    const Hora = (strAgenda_Completa.Maestro[0].Hora);
-    //console.log('la Hora : '+ JSON.stringify(strAgenda_Completa.Maestro[0]));
-    
-    
-    ////  GOTO : dirtecciones 
-    let X = 60;
-    let Y = 160;
-    let SESION =``
-    if (1){SESION =`SESIÓN EXTRAORDINARIA`}else{SESION =`SESIÓN ORDINARIA`}
+    const dia = (strActa_Completa.Maestro[0].FechaRegistro).getDate() + 1;
+    const mes = (strActa_Completa.Maestro[0].FechaRegistro).getMonth();
+    const anio = (strActa_Completa.Maestro[0].FechaRegistro).getFullYear();
+    const FechaRegSistema = dia + " DE " + meses[mes] + ", " + anio;
 
-    //// Pintar la data   
-    Doc.image('./rept/logo-cnu.png', X, 45, { fit: [190, 190] }).stroke();
-    Doc.font('Times-Bold').fontSize(18).text('C O N V O C A T O R I A', X, Y, { width: 500, align: 'center' });
-    Doc.font('Times-Bold').fontSize(13).text('A :', X, Y + 30, { width: 400, align: 'left' });
-    Doc.font('Times-Bold').fontSize(13).text('Miembros del Consejo Nacional de Universidades', X + 60, Y + 30, { width: 400, align: 'left' });
-    Doc.font('Times-Bold').fontSize(13).text('De:', X, Y + 60, { width: 400, align: 'left' });
-    Doc.font('Times-Bold').fontSize(13).text('Roberto Enrique Flores Días', X + 60, Y + 60, { width: 400, align: 'left' });
-    Doc.font('Times-Bold').fontSize(13).text('Secretario del CNU', X + 90, Y + 75, { width: 400, align: 'left' });
-    Doc.moveTo(X + 200, Y + 85).lineTo(X + 200, Y + 85).lineTo(X + 350, Y + 85).stroke();
-    Doc.font('Times-Bold').fontSize(13).text('Ref:', X, Y + 115, { width: 400, align: 'left' });
-    Doc.font('Times-Bold').fontSize(13).text(`${SESION} No. ${IdAgenda}`, X + 60, Y + 115, { width: 400, });
-    Doc.moveTo(X + 50, Y + 126).lineTo(X + 50, Y + 126).lineTo(X + 310, Y + 126).stroke();
-    Doc.font('Times-Bold').fontSize(13).text('FECHA:', X, Y + 140, { width: 400, align: 'left' });
-    Doc.font('Times-BoldItalic').fontSize(13).text(`${FechaRegSistema}`, X + 60, Y + 140, { width: 400, align: 'left'});
-    Doc.font('Times-Bold').fontSize(13)
-      .text('* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  * * * * * *'
-        , X, Y + 155, { width: 500, align: 'left' });
+    const strFechaSesion = new Date(strActa_Completa.Maestro[0].FechaSesion);
+    const r_dia = strFechaSesion.getDate() + 1;
+    const r_mes = strFechaSesion.getMonth();
+    const r_anio = strFechaSesion.getFullYear();
+    const FechaSesion = r_dia + " DE " + meses[r_mes] + ", " + r_anio;
+    const Hora = (strActa_Completa.Maestro[0].Hora) + ' Horas';
+    const Local = (strActa_Completa.Maestro[0].Local);
 
-    let strbody = "Estimados(as) miembros del Consejo Nacional de Universidades, Doctora Ramona Rodríguez Pérez, ";
-    strbody += `atenta y respetuosamente, se convoca a los honorables miembros a ${SESION} No. ${IdAgenda}, ` ;
-    strbody += "del Consejo Nacional de Universidades, la que se realizará segun detalle";
-    Doc.font('Times-Roman').fontSize(13).text(`${strbody}`, X, Y + 170, { width: 500, align: 'justify' });
+    //-------------------------------------------------------------------------------------//  
+    ////  GOTO : direcciones del logo cnu 
+    let Xi = 200;
+    let Yi = 30;
+    let MEMBRETE = `ACTA DE ACUERDOS DEL CONSEJO NACIONAL DE UNIVERSIDADES`
+    let SESION = ``
+    if (TipoSesion === 'Ordinaria') { SESION = `SESIÓN ORDINARIA` }
+    else if (TipoSesion === 'Extra-Ordinaria') { SESION = `SESIÓN EXTRAORDINARIA` }
+    else if (TipoSesion === 'Ordinaria-Virtual') { SESION = `SESIÓN ORDINARIA VIRTUAL` }
+    else { SESION = `SESIÓN EXTRAORDINARIA VIRTUAL` }
 
-    //fecha  - hora - local  
-    const strLocal = JSON.stringify(strAgenda_Completa.Maestro[0].LOCAL);
-    Doc.font('Times-Roman').fontSize(13).text("Fecha:", X, Y + 240);
-    Doc.font('Times-Roman').fontSize(13).text(`${FechaRegristro}`, X + 60, Y + 240);
-    Doc.font('Times-Roman').fontSize(13).text("Hora:", X, Y + 255);
-    Doc.font('Times-Roman').fontSize(13).text(`${Hora} H`, X + 60, Y + 255);
-    Doc.font('Times-Roman').fontSize(13).text("Local:", X, Y + 270);
-    Doc.font('Times-Roman').fontSize(13).text(`${strLocal}`, X + 60, Y + 270);
+    /////// Pintar EL MEMBRETE   
+    Doc.image('./rept/logo-cnu.png', Xi, Yi, { align: 'center', fit: [190, 190], }).stroke();
+    Doc.fill("#000000").font('Times-Bold').fontSize(12).text(MEMBRETE, Xi - 160, Yi + 80, { width: 500, align: 'center' });
+    Doc.fill("#000000").font('Times-Bold').fontSize(12).text(SESION + ' No. ' + IdActaSesion + ', DEL ' + FechaSesion, Xi - 160, Yi + 100, { width: 500, align: 'center' });
 
 
-    //Agenda de la Sesion  - Tabla [] puntosAgenda       
-    const table = { title: '', headers: ['Puntos'], rows: [] }
-    Doc.font('Times-Bold').fontSize(13).text('AGENDA DE LA SESIÓN', X, Y + 305, { width: 500 });
-    Doc.moveTo(X, Y + 315).lineTo(X, Y + 315).lineTo(X + 150, Y + 315).stroke();
+    //-------------------------------------------------------------------------------------//  
+    ////  GOTO : Direcciones de la Cabecera 
+    ////  Pintar INICIO Y DEDICATORAS             
+    let X = 50;
+    let Y = 180;
+    if (TipoSesion === 'Ordinaria-Virtual') {
+      Doc.font('Times-Bold').fontSize(12).text('Inicio : ' + Hora, X, Y, { width: 400, align: 'left' });
+      Doc.font('Times-Bold').fontSize(12).text('Local  : ' + 'Por llamada Zoom', X, Y + 20, { width: 400, align: 'left' });
+    } else if (TipoSesion === 'Extra-Ordinaria-Virtual') {
+      Doc.font('Times-Bold').fontSize(12).text('Inicio : ' + Hora, X, Y, { width: 400, align: 'left' });
+      Doc.font('Times-Bold').fontSize(12).text('Local  : ' + 'Por llamada Zoom', X, Y + 20, { width: 400, align: 'left' });
+    } else {
+      Doc.font('Times-Bold').fontSize(12).text('Inicio : ' + Hora, X, Y, { width: 400, align: 'left' });
+      Doc.font('Times-Bold').fontSize(12).text('Local  : ' + Local, X, Y + 20, { width: 400, align: 'left' });
+    }
 
-    let f = 0; //ForEach
-    strAgenda_Completa.PuntosDeAgenda.forEach(fila => {
-      const tmp = fila.PuntosAgenda;
-      const reg = tmp.replace(/"/g, "").replace(/[\t\n]/g, '');
-      Doc.font('Times-Roman').fontSize(13).text(reg, X, Y + 330 + f, { width: 500, align: 'left' });
 
-      f = f + 15 + (Math.round(((JSON.stringify(fila.PuntosAgenda).length) / 200)) * 15);
+    //-------------------------------------------------------------------------------------//  
+    ////  GOTO : Direcciones del Cuerpo
+    let Xc = 50;
+    let Yc = 230;
+    let contador_YC = 0;
+
+    Doc.font('Times-Bold').fontSize(12)
+      .text('Dedicatoria :', Xc, Yc, { width: 400, align: 'left', underline: true });
+    Yc = Yc + 15;
+    //// Dedicatorias filas
+    contador_YC = 0;
+    const ActaDedicatoria = strActa_Completa.Maestro;  //ActaDedicatoria    
+    ActaDedicatoria.forEach(reg => {
+      Doc.font('Times-Roman').fontSize(13)
+        .text(reg.ActaDedicatoria, Xc, Yc, { width: 400, align: 'left' });
     });
-
-    Y = Y + f; // actualiz a Y   
-       
-    // const tb_pAgenda =[];
-    // strAgenda_Completa.PuntosDeAgenda.forEach(element => {
-    //   tb_pAgenda.push({'puntoAgenda':JSON.stringify(element.PuntosAgenda)})
-    // });
-    //   Doc.addTable(
-    //     [{ key: 'puntoAgenda', label: 'AGENDA DE LA SESIÓN', align: 'left' }],
-    //     tb_pAgenda,
-    //     {
-    //       border: null,
-    //       width: "fill_body",
-    //       striped: true,
-    //       stripedColors: ["#f6f6f6", "#d6c4dd"],
-    //       cellsPadding: 10,
-    //       marginLeft: 45,
-    //       marginRight: 45,
-    //       headAlign: 'left'
-    //     });
-    //   Doc.render();
-
-    //El footers
-    Doc.font('Times-Roman').fontSize(13).text('Seguros de contar con su puntual asistencia.', X, Y + 370);
-    Doc.font('Times-Bold').fontSize(13)
-      .text('* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  * * * * * *'
-        , X, Y + 395, { width: 500, align: 'left' });
+    const nfilas = ActaDedicatoria[0].ActaDedicatoria.split(/\n/);
+    contador_YC = contador_YC + (nfilas.length * 15);
+    Yc = Yc + contador_YC;
+    Doc.fontSize(12).text(' ', Xc, Yc, { width: 400, align: 'left' });
 
 
-    //bit-Footer    
-    Doc.image('./rept/bit-Foother.png', X, Y + 420, { fit: [500, 300] }).stroke();      
+    //-------------------------------------------------------------------------------------//  
+    //// Asistencia miemmbros                         
+    //Tabla de : ASISTENCIAS           
+    contador_YC = 0;
+    const RepreClaustro = strActa_Completa.RepreClaustro;  //RepreClaustro        
+    const table = { headers: ['Asistencia miembros del CNU:'], rows: [] };
+    RepreClaustro.forEach(miembro => {
+      table.rows.push([miembro.CodGradoAcademico + ' ' + miembro.Nombre + ' ' + miembro.TxtCodClaustro]);
+      contador_YC = contador_YC + 40;
+    });
+    Doc.table(table,
+      {
+        prepareHeader: () => { Doc.font("Times-Bold").fontSize(13), 'padding:5' },
+        prepareRow: () => { Doc.font("Times-Roman").fontSize(13) },
+        width: 500, columnsSize: [500],
+      });
+    Yc = Yc + contador_YC;
+    Doc.fontSize(12).text('  ', Xc, Yc, { width: 400, align: 'left' });
+
+    //-------------------------------------------------------------------------------------//  
+    //// PUNTOS E DAGENDA   **     const docTabla = new DBActas.PDFDocumentWithTables();        
+    // Tabla de :  PUNTOS DE AGENDA    
+    contador_YC = 0;
+    const GetPuntosDeAgenda = strActa_Completa.GetPuntosDeAgenda;  //GetPuntosDeAgenda    
+    const tablePuntosDeAgenda = { headers: ['Puntos de Agenda:'], rows: [] };
+    GetPuntosDeAgenda.forEach(miembro => {
+      tablePuntosDeAgenda.rows.push([miembro.PuntosAgenda]);
+      //console.log('fila : ' + JSON.stringify(miembro.PuntosAgenda));
+      if(miembro.PuntosAgenda.length >100){
+        const strfilPuntos = Math.round(miembro.PuntosAgenda.length / 100);
+        contador_YC = contador_YC + (strfilPuntos * 30);
+      //console.log('strfilPuntos.length : ' + strfilPuntos);
+      }else{
+        contador_YC = contador_YC + 30;
+      }
+
+    });
+    Doc.table(tablePuntosDeAgenda,
+      {
+        prepareHeader: () => { Doc.font("Times-Bold").fontSize(12),'padding:5'},
+        prepareRow: () => { Doc.font("Times-Roman").fontSize(13) },
+        width: 500, columnsSize: [500], border: null,
+      });
+    Yc = Yc + contador_YC;
+    Doc.fontSize(12).text(' ', Xc, Yc, { width: 400, align: 'left' });
+
+
+
+    //-------------------------------------------------------------------------------------//  
+    //Doc.font('Times-Bold').fontSize(12).text('Acuerdos: ', Xc, Yc, { width: 400, align: 'left', underline: true });
+    contador_YC = 0;
+    const puntosAcuerdos = strActa_Completa.puntosAcuerdos;  //puntosAcuerdos    
+    const tablepuntosAcuerdos = { headers: ['Acuerdos:'], rows: [] };
+    puntosAcuerdos.forEach(miembro => {
+      tablepuntosAcuerdos.rows.push([miembro.IdAcuerdos + ' : ' + miembro.Acuerdos]);
+      contador_YC = contador_YC + 40;
+    });
+    Doc.table(tablepuntosAcuerdos, 
+      {
+         prepareHeader: (row, indexColumn, indexRow, rectRow) => { Doc.font("Times-Bold" ).fontSize(12)},
+         prepareRow:    (row, indexColumn, indexRow, rectRow) => { Doc.font("Times-Roman").fontSize(12)},
+         width: 500, columnsSize: [500], border: null
+     });
+
+    Yc = Yc + contador_YC;
+    Doc.fontSize(12).text('', Xc, Yc, { width: 400, align: 'left' });
+
+
+    //-------------------------------------------------------------------------------------//  
+    ////// las Firmas del Acta     
+    const firmasPresidenta = strActa_Completa.firmasPresidenta[0].CodGradoAcademico
+      + '.' + strActa_Completa.firmasPresidenta[0].NombreCompleto;  //firmasPresidenta    
+    const firmasSecretario = strActa_Completa.firmasSecretario[0].CodGradoAcademico
+      + '.' + strActa_Completa.firmasSecretario[0].NombreCompleto;  //firmasSecretario    
+
+    contador_YC = 30;
+    Yc = Yc + contador_YC;
+    Doc.font('Times-Bold').fontSize(12).text('______________________________', Xc, Yc, { width: 500, align: 'left' });
+    Doc.font('Times-Bold').fontSize(12).text('_______________________________', Xc + 300, Yc, { width: 500, align: 'left' });
+    contador_YC = 15;
+    Yc = Yc + contador_YC;
+    Doc.font('Times-Bold').fontSize(12).text(firmasPresidenta, Xc, Yc + 15, { width: 500, align: 'left' });
+    Doc.font('Times-Bold').fontSize(12).text(firmasSecretario, Xc + 300, Yc + 15, { width: 500, align: 'left' });
+
+    //-------------------------------------------------------------------------------------//  
+    ///////bit-Footer      
+    contador_YC = 30;
+    Yc = Yc + contador_YC;
+    Doc.image('./rept/bit-Foother.png', Xc, Yc, { fit: [500, 300] }).stroke();
+
+
+    //-------------------------------------------------------------------------------------//  
+    /////  cierre del Doc
     Doc.end();
-
     const pdfStream = await getStream.buffer(Doc);
     return pdfStream;
+
   } catch (err) {
     console.log('error es  : ' + err);
     next(err)
@@ -210,12 +325,14 @@ const imprimir = async (req, res, next) => {
 }
 
 
-
 module.exports = {
-  getAgendaId: getAgendaId,
-  getActaListado:getActaListado,
-  getNroAgenda: getNroAgenda,
-  add_Agenda: add_Agenda,
+  getActaDetalle: getActaDetalle,
+  getActaListado: getActaListado,
+  getNroActa,
+  getNroIdAcuerdo,
+  getAgendaActa,
+  postgetPuntosDeAgenda,
+  Add_Json_Acta: Add_Json_Acta,
   EditAgenda: EditAgenda,
   imprimir: imprimir,
   DelEditAgenda: DelEditAgenda

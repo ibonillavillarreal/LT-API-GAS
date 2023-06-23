@@ -10,74 +10,76 @@ const { time } = require('console');
 
 
 
-const add_Agenda = async (json_Agenda) => {
+const postgetPuntosDeAgenda = async (json_Cod_Agenda) => {
   try {
 
-    let MasterAgenda = json_Agenda.Master_Agenda;
+    let CodAgenda = json_Cod_Agenda.Cod_Agenda;
 
     let mssql = await sql.connect(conexion);
-    let retorno_CodAgenda = await mssql.request()
-      .input('CodAgenda', sql.Int, 0)
-      .input('IdAgenda', sql.NVarChar, MasterAgenda.IdAgenda)
-      .input('Local', sql.NVarChar, MasterAgenda.Local)
-      .input('DescripcionAgenda', sql.NVarChar, MasterAgenda.DescripcionAgenda)
-      .input('EstadoAgenda', sql.Int, 1)
-      .input('FechaRegristro', sql.Date, MasterAgenda.FechaRegristro)
-      .input('esHora', sql.NVarChar, MasterAgenda.HoraRegristro)   
-      .input('FechaRegSistema', sql.Date, Date(new Date()))
-      .input('EstadoRegsistro', sql.Int, 1)
-      .input('IdUsuario', sql.Int, MasterAgenda.IdUsuario)
-      .input('Operacion', sql.Int, 2)
-      //output('return_value',sql.Int,0)
-      .execute('Legales.p_SavetbAgendas')
-    let CodAgenda = retorno_CodAgenda.returnValue;
+    let data = await mssql.request()
+      .input('CodAgenda', sql.Int, CodAgenda)
+      .input('EstadoRegistro', sql.Int, 1)
+      .execute('Legales.p_GettbAgendaDetalles')
 
-    //- - -
-    let DetalleAsistencia = json_Agenda.Detalle_Asistencia;
-    let ultimoRetorno;
-
-    DetalleAsistencia.forEach(registro => {
-      let retorno_DetalleAsistencia = mssql.request()
-        .input('CodCuorum', sql.Int, 0)
-        .input('CodAgenda', sql.Int, CodAgenda)
-        .input('CodTipo', sql.Int, registro.CodClaustro)
-        .input('CodMiembro', sql.Int, registro.CodMiembro)
-        .input('NotaObservacion', sql.NVarChar, registro.NotaObservacion)
-        .input('FechaRegistro', sql.Date, Date(new Date()))
-        .input('EstadoRegistro', sql.Int, 1)
-        .input('IdUsuario', sql.Int, MasterAgenda.IdUsuario)
-        .input('Operacion', sql.Int, 2)
-        .execute('Legales.p_SavetbRepresentantes')
-      ultimoRetorno = retorno_DetalleAsistencia.returnValue
-    });
-
-    // - - - 
-    let DetallePuntosAgenda = json_Agenda.Detalle_PuntosAgenda;
-    let ultimoRetornoPuntos;
-
-    DetallePuntosAgenda.forEach(reg_DetPuntos => {
-
-      let retorno_DetalleAsistencia = mssql.request()
-        .input('CodAgendaDetalles', sql.Int, 0)
-        .input('CodAgenda', sql.Int, CodAgenda)
-        .input('PuntosAgenda', sql.NVarChar, reg_DetPuntos.PuntosAgenda)
-        .input('NotaObservacion', sql.NVarChar, reg_DetPuntos.NotaObservacion)
-        .input('EstadoPunto', sql.Int, 1)
-        .input('FechaRegistro', sql.Date, Date(new Date()))
-        .input('EstadoRegistro', sql.Int, 1)
-        .input('IdUsuario', sql.Int, MasterAgenda.IdUsuario)
-        .input('Operacion', sql.Int, 2)
-        .execute('Legales.p_SavetbAgendaDetalles')
-      ultimoRetornoPuntos = retorno_DetalleAsistencia.returnValue
-    });
-
-    // - - - 
-    return 1;
+    return data.recordset;
 
   } catch (err) {
     console.log(err);
   }
+
 }
+
+
+const Add_Json_Acta = async (json_Cod_Acta) => {
+  //console.log('llegando a controlador : ' + JSON.stringify(json_Cod_Acta));
+  try {
+
+    let Acta_Maestro = json_Cod_Acta.Acta_ful.Acta_Maestro;
+
+    let mssql = await sql.connect(conexion);
+    let data = await mssql.request()
+      .input('CodActas', sql.Int, 0)
+      .input('CodAgenda', sql.Int, Acta_Maestro.CodAgenda)
+      .input('IdSesion', sql.NVarChar, Acta_Maestro.IdSesion)
+      .input('TipoSesion', sql.Int, Acta_Maestro.TipoSesion)
+      .input('IdActaMembrete', sql.Int, 49)
+      .input('Hora', sql.NVarChar, Acta_Maestro.Hora)
+      .input('Local', sql.NVarChar, Acta_Maestro.Local)
+      .input('ActaDedicatoria', sql.NVarChar, Acta_Maestro.ActaDedicatoria)
+      .input('FechaSesion', sql.Date, Acta_Maestro.FechaSesion)
+      .input('EstadoActaX100', sql.Float, 0)
+      .execute('Legales.p_SavetbActas')
+    let newCodActa = data.returnValue;
+    
+
+    let Acta_Detalle = json_Cod_Acta.Acta_ful.Acta_Detalle;
+    let ultimoDetalle;
+    Acta_Detalle.forEach(tbAcuerdos => {
+      let retorno_DetalleAcuerdos = mssql.request()   
+        .input('CodAcuerdo', sql.Int,0)
+        .input('CodActa', sql.Int,newCodActa)
+        .input('CodAgendaDetalles', sql.Int,tbAcuerdos.CodAgendaDetalles)
+        .input('IdAcuerdos', sql.NVarChar,tbAcuerdos.IdAcuerdos)
+        .input('Acuerdos', sql.NVarChar,tbAcuerdos.Acuerdos)
+        .input('AudioAcuerdo', sql.NVarChar,tbAcuerdos.AudioAcuerdo)
+        .input('EstadoAcuerdo', sql.Int,1)
+        .input('FechaRegistro', sql.Date,Date(new Date()))
+        .input('EstadoRegistro', sql.Int,1)
+        .input('IdUsuario', sql.Int,1)
+        .input('Operacion', sql.Int,1)
+        .execute('Legales.p_SavetbAcuerdos')
+        ultimoDetalle = retorno_DetalleAcuerdos.returnValue
+    });
+
+
+    return newCodActa;
+  } catch (err) {
+    console.log(err);
+  }
+
+}
+
+
 
 const editAgenda = async (json_Agenda) => {
   try {
@@ -92,13 +94,13 @@ const editAgenda = async (json_Agenda) => {
       .input('DescripcionAgenda', sql.NVarChar, MasterAgenda.DescripcionAgenda)
       .input('EstadoAgenda', sql.Int, 1)
       .input('FechaRegristro', sql.Date, MasterAgenda.FechaRegristro)
-      .input('esHora', sql.NVarChar, MasterAgenda.HoraRegristro)   
+      .input('esHora', sql.NVarChar, MasterAgenda.HoraRegristro)
       .input('FechaRegSistema', sql.Date, Date(new Date()))
       .input('EstadoRegsistro', sql.Int, 1)
       .input('IdUsuario', sql.Int, MasterAgenda.IdUsuario)
       .input('Operacion', sql.Int, 4)
       .execute('Legales.p_SavetbAgendas')
-    let CodAgenda = retorno_CodAgenda.returnValue;  
+    let CodAgenda = retorno_CodAgenda.returnValue;
     console.log('Hora como cadaena :' + JSON.stringify(MasterAgenda.HoraRegristro));
 
     //- - -  limpia los item eliminados
@@ -180,7 +182,8 @@ const getActaListado = async () => {
   try {
     let mssql = await sql.connect(conexion);
     let salida = await mssql.request()
-      .input('EstadoRegistro', sql.Int, 1)      
+      .input('CodActas', sql.Int, 0)
+      .input('EstadoRegistro', sql.Int, 1)
       .execute('Legales.p_GettbActas')
     return salida.recordsets;
 
@@ -190,12 +193,12 @@ const getActaListado = async () => {
   }
 }
 
-//getNroAgenda
-const getNroAgenda = async () => {
+
+const getNroActa = async () => {
   try {
     let mssql = await sql.connect(conexion);
     let salida = await mssql.request()
-      .execute('Legales.p_GetNroDeAgendas')
+      .execute('Legales.p_GetNroDeActas')
     return salida.recordsets;
 
   } catch (e) {
@@ -205,39 +208,61 @@ const getNroAgenda = async () => {
 }
 
 
-const getAgendaId = async (id) => {
+const getNroIdAcuerdo = async () => {
   try {
-    let json_Agenda;
+    let mssql = await sql.connect(conexion);
+    let salida = await mssql.request()
+      .execute('Legales.p_GetNroIdAcuerdo')
+     
+      //console.log('data salida : '+JSON.stringify(salida.recordset[0].newNroIdAcuerdo))   
+      return salida.recordset[0].newNroIdAcuerdo;
+
+  } catch (e) {
+    console.log(e)
+    return "0";
+  }
+}
+
+
+const getActaDetalleId = async (id) => {
+  try {
     let maestro;
-    let asistencia;
-    let puntos;
+        console.log('Id valor CodActa : '+ JSON.stringify(id));
 
     let mssql = await sql.connect(conexion);
     let salida_maestro = await mssql.request()
-      .input('CodAgenda', sql.Int, id)
-      .input('EstadoRegsistro', sql.Int, 1)
-      .execute('Legales.p_GettbAgendas');
+      .input('CodActa', sql.Int, id)
+      .input('EstadoRegistro', sql.Int, 1)
+      .execute('Legales.p_GettbAcuerdos');
     maestro = salida_maestro.recordsets[0];
 
-    let salida_asistencia = await mssql.request()
-      .input('CodAgenda', sql.Int, id)
-      .input('EstadoRegistro', sql.Int, 1)
-      .execute('Legales.p_GettbRepresentantes');
-    asistencia = salida_asistencia.recordsets[0];
-
-    let salida_puntos = await mssql.request()
-      .input('CodAgenda', sql.Int, id)
-      .input('EstadoRegistro', sql.Int, 1)
-      .execute('Legales.p_GettbAgendaDetalles');
-    puntos = salida_puntos.recordsets[0];
-
-    json_Agenda = { Maestro: maestro, Asistencia: asistencia, PuntosDeAgenda: puntos }
-
-    return json_Agenda
+    return maestro
   } catch (e) {
     console.log(e)
   }
 }
+
+
+
+const getAgendaActa = async () => {
+  // console.log('Esta llegando a getAgendaActa');
+
+  try {
+    let mssql = await sql.connect(conexion);
+    let salida = await mssql.request()
+      .input('CodAgenda', sql.Int, 0)
+      .input('EstadoRegsistro', sql.Int, 1)
+      .execute('Legales.p_GetAgendaActa')
+    return salida.recordsets;
+
+
+  } catch (e) {
+    console.log(e)
+    return "0";
+  }
+}
+
+
 
 
 const DelEditAgenda = async (obj) => {
@@ -259,14 +284,14 @@ const DelEditAgenda = async (obj) => {
 
 
 const imprimir = async (id) => {
-  
+
   try {
     let mssql = await sql.connect(conexion);
     let salida_maestro = await mssql.request()
       .input('CodAgenda', sql.Int, id)
       .input('EstadoRegsistro', sql.Int, 1)
       .execute('Legales.p_GettbAgendas');
-    return salida_maestro.recordsets[0][0];    
+    return salida_maestro.recordsets[0][0];
 
   } catch (err) {
     console.log(err);
@@ -274,13 +299,214 @@ const imprimir = async (id) => {
   }
 }
 
+
+const getActaId = async (id) => {
+  try {
+    let json_Acta;
+    let maestro;
+    let agendaActa;
+    let puntosAcuerdos;
+    let agendaDedicatoria;
+    let GetPuntosDeAgenda;
+    let RepreClaustro;
+    let firmasPresidenta;
+    let firmasSecretario;
+
+    let mssql = await sql.connect(conexion);
+    let salida_maestro = await mssql.request()
+      .input('CodActas', sql.Int, id)
+      .input('EstadoRegistro', sql.Int, 1)
+      .execute('Legales.p_GettbActas');    //p_GettbActas
+    maestro = salida_maestro.recordsets[0];
+
+    let salida_agendaActa = await mssql.request()
+      .input('CodAgenda', sql.Int, maestro[0].CodAgenda)
+      .input('EstadoRegsistro', sql.Int, 1)
+      .execute('Legales.p_GetAgendaActa');  //p_GetAgendaActa
+    agendaActa = salida_agendaActa.recordsets[0];
+
+    let salida_RepreClaustro = await mssql.request()
+      .input('CodAgenda', sql.Int, maestro[0].CodAgenda)
+      .input('EstadoRegistro', sql.Int, 1)
+      .execute('Legales.p_GetRepreClaustro');  //p_GetRepreClaustro 
+      RepreClaustro = salida_RepreClaustro.recordsets[0];
+    
+    let salida_agendaDedicatoria = await mssql.request()
+      .input('CodAgenda', sql.Int, maestro[0].CodAgenda)
+      .input('EstadoRegsistro', sql.Int, 1)
+      .execute('Legales.p_GetDedicatoriaAgendaActa');  //p_GetDedicatoriaAgendaActa
+      agendaDedicatoria = salida_agendaDedicatoria.recordsets[0];
+
+      let salida_GetPuntosDeAgenda = await mssql.request()
+      .input('CodAgenda', sql.Int, maestro[0].CodAgenda)
+      .input('EstadoRegsistro', sql.Int, 1)
+      .execute('Legales.p_GetPuntosDeAgenda');  //p_GetPuntosDeAgenda
+      GetPuntosDeAgenda = salida_GetPuntosDeAgenda.recordsets[0];
+
+
+    let salida_acuerdos = await mssql.request()
+      .input('CodActa', sql.Int, id)
+      .input('EstadoRegistro', sql.Int, 1)
+      .execute('Legales.p_GettbAcuerdos');  //p_GettbAcuerdos
+    puntosAcuerdos = salida_acuerdos.recordsets[0];
+
+    let salida_firmasPresidenta = await mssql.request()
+      .input('CdoMiembro', sql.Int,8)
+      .input('EstadoRegistro', sql.Int, 1)
+      .execute('RRHH.p_GetFirmas');  //p_GetFirmas
+      firmasPresidenta = salida_firmasPresidenta.recordsets[0];
+
+       
+      let salida_firmasSecretario = await mssql.request()
+      .input('CdoMiembro', sql.Int,9)
+      .input('EstadoRegistro', sql.Int, 1)
+      .execute('RRHH.p_GetFirmas');  //p_GetFirmas
+      firmasSecretario = salida_firmasSecretario.recordsets[0];
+
+    json_Acta = { Maestro: maestro, agendaActa: agendaActa, puntosAcuerdos: puntosAcuerdos, 
+                  AgendaDedicatoria:agendaDedicatoria, GetPuntosDeAgenda:GetPuntosDeAgenda, 
+                  RepreClaustro: RepreClaustro, firmasPresidenta:firmasPresidenta, firmasSecretario:firmasSecretario}
+
+    return json_Acta
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+
+//*************************************** class tablas ******************************************/
+// Import dependencies pdfKit
+const PDFDocument = require("pdfkit");
+//
+class PDFDocumentWithTables extends PDFDocument {
+  constructor(options) {
+      super(options);
+  }
+
+  table(table, arg0, arg1, arg2) {
+      let startX = this.page.margins.left, startY = this.y;
+      let options = {};
+
+      if ((typeof arg0 === "number") && (typeof arg1 === "number")) {
+          startX = arg0;
+          startY = arg1;
+
+          if (typeof arg2 === "object")
+              options = arg2;
+      } else if (typeof arg0 === "object") {
+          options = arg0;
+      }
+
+      const columnCount = table.headers.length;
+      const columnSpacing = options.columnSpacing || 15;
+      const rowSpacing = options.rowSpacing || 5;
+      const usableWidth = options.width || (this.page.width - this.page.margins.left - this.page.margins.right);
+
+      const prepareHeader = options.prepareHeader || (() => { });
+      const prepareRow = options.prepareRow || (() => { });
+      const computeRowHeight = (row) => {
+          let result = 0;
+
+          row.forEach((cell) => {
+              const cellHeight = this.heightOfString(cell, {
+                  width: columnWidth,
+                  align: "left"
+              });
+              result = Math.max(result, cellHeight);
+          });
+
+          return result + rowSpacing;
+      };
+
+      const columnContainerWidth = usableWidth / columnCount;
+      const columnWidth = columnContainerWidth - columnSpacing;
+      const maxY = this.page.height - this.page.margins.bottom;
+
+      let rowBottomY = 0;
+
+      this.on("pageAdded", () => {
+          startY = this.page.margins.top;
+          rowBottomY = 0;
+      });
+
+      // Allow the user to override style for headers
+      prepareHeader();
+
+      // Check to have enough room for header and first rows
+      if (startY + 3 * computeRowHeight(table.headers) > maxY)
+          this.addPage();
+
+      // Print all headers
+      table.headers.forEach((header, i) => {
+          this.font("Courier-Bold").fontSize(10).text(header, startX + i * columnContainerWidth, startY, {
+              width: columnWidth,
+              align: "left"
+          });
+      });
+
+      // Refresh the y coordinate of the bottom of the headers row
+      rowBottomY = Math.max(startY + computeRowHeight(table.headers), rowBottomY);
+
+      // Separation line between headers and rows
+      this.moveTo(startX, rowBottomY - rowSpacing * 0.5)
+          .lineTo(startX + usableWidth, rowBottomY - rowSpacing * 0.5)
+          .lineWidth(2)
+          .stroke();
+
+      table.rows.forEach((row, i) => {
+          const rowHeight = computeRowHeight(row);
+
+          // Switch to next page if we cannot go any further because the space is over.
+          // For safety, consider 3 rows margin instead of just one
+          if (startY + 3 * rowHeight < maxY)
+              startY = rowBottomY + rowSpacing;
+          else
+              this.addPage();
+
+          // Allow the user to override style for rows
+          prepareRow(row, i);
+
+          // Print all cells of the current row
+          row.forEach((cell, i) => {
+              this.text(cell, startX + i * columnContainerWidth, startY, {
+                  width: columnWidth,
+                  align: "left"
+              });
+          });
+
+          // Refresh the y coordinate of the bottom of this row
+          rowBottomY = Math.max(startY + rowHeight, rowBottomY);
+
+          // Separation line between rows
+          this.moveTo(startX, rowBottomY - rowSpacing * 0.3)
+              .lineTo(startX + usableWidth, rowBottomY - rowSpacing * 0.3)
+              .lineWidth(1)
+              .opacity(0.7)
+              .stroke()
+              .opacity(1); // Reset opacity after drawing the line
+      });
+
+      this.x = startX;
+      this.moveDown();
+
+      return this;
+  }
+}
+
+
+
 module.exports = {
-  getAgendaId: getAgendaId,
+  getActaDetalleId: getActaDetalleId,
   getActaListado: getActaListado,
-  getNroAgenda: getNroAgenda,
-  add_Agenda: add_Agenda,
+  getNroActa: getNroActa,
+  getNroIdAcuerdo,
+  getAgendaActa,
+  postgetPuntosDeAgenda: postgetPuntosDeAgenda,
+  Add_Json_Acta: Add_Json_Acta,
   editAgenda: editAgenda,
   imprimir, imprimir,
-  DelEditAgenda: DelEditAgenda
+  getActaId:getActaId,
+  DelEditAgenda: DelEditAgenda,
+  PDFDocumentWithTables
 };
 
