@@ -84,22 +84,33 @@ const Add_Json_Acta = async (request, response, next) => {
   } catch (error) {
     next(error)
   }
-
 }
 
 
-const EditAgenda = async (request, response, next) => {
+const path = require('path');
+const subir = async (request, response, next) => {
   try {
-    let Agenda = { ...request.body }
-    let data = await DBActas.editAgenda(Agenda)
-    return response.json(data);
+
+    const cod_file = request.file.filename.split('.')[0].substring(12);
+    const urlFileName = 'D:/ProyectoCNU-cli/zSubidas/' + request.file.filename;
+    jsonPath = { cod_file, urlFileName }
+    let Url_Data = await DBActas.editActaDocx(jsonPath)
+
+    return response.json(Url_Data);
   } catch (error) {
     next(error)
   }
 }
 
-const DelEditAgenda = async (request, response, next) => {
 
+const download = (request, response, next) => {
+  const cod_acta = request.body.filename;
+  const directoryPath = path.join('D:/ProyectoCNU-cli/zSubidas/UpDocCodActa') + cod_acta + '.docx'; 
+  response.sendFile(directoryPath);
+};
+
+
+const DelEditAgenda = async (request, response, next) => {
   try {
     let json_id = { ...request.body }
     let data = await DBActas.DelEditAgenda(json_id)
@@ -247,18 +258,18 @@ const imprimir = async (req, res, next) => {
     GetPuntosDeAgenda.forEach(miembro => {
       tablePuntosDeAgenda.rows.push([miembro.PuntosAgenda]);
       //console.log('fila : ' + JSON.stringify(miembro.PuntosAgenda));
-      if(miembro.PuntosAgenda.length >100){
+      if (miembro.PuntosAgenda.length > 100) {
         const strfilPuntos = Math.round(miembro.PuntosAgenda.length / 100);
         contador_YC = contador_YC + (strfilPuntos * 30);
-      //console.log('strfilPuntos.length : ' + strfilPuntos);
-      }else{
+        //console.log('strfilPuntos.length : ' + strfilPuntos);
+      } else {
         contador_YC = contador_YC + 30;
       }
 
     });
     Doc.table(tablePuntosDeAgenda,
       {
-        prepareHeader: () => { Doc.font("Times-Bold").fontSize(12),'padding:5'},
+        prepareHeader: () => { Doc.font("Times-Bold").fontSize(12), 'padding:5' },
         prepareRow: () => { Doc.font("Times-Roman").fontSize(13) },
         width: 500, columnsSize: [500], border: null,
       });
@@ -276,12 +287,12 @@ const imprimir = async (req, res, next) => {
       tablepuntosAcuerdos.rows.push([miembro.IdAcuerdos + ' : ' + miembro.Acuerdos]);
       contador_YC = contador_YC + 40;
     });
-    Doc.table(tablepuntosAcuerdos, 
+    Doc.table(tablepuntosAcuerdos,
       {
-         prepareHeader: (row, indexColumn, indexRow, rectRow) => { Doc.font("Times-Bold" ).fontSize(12)},
-         prepareRow:    (row, indexColumn, indexRow, rectRow) => { Doc.font("Times-Roman").fontSize(12)},
-         width: 500, columnsSize: [500], border: null
-     });
+        prepareHeader: (row, indexColumn, indexRow, rectRow) => { Doc.font("Times-Bold").fontSize(12) },
+        prepareRow: (row, indexColumn, indexRow, rectRow) => { Doc.font("Times-Roman").fontSize(12) },
+        width: 500, columnsSize: [500], border: null
+      });
 
     Yc = Yc + contador_YC;
     Doc.fontSize(12).text('', Xc, Yc, { width: 400, align: 'left' });
@@ -333,7 +344,8 @@ module.exports = {
   getAgendaActa,
   postgetPuntosDeAgenda,
   Add_Json_Acta: Add_Json_Acta,
-  EditAgenda: EditAgenda,
+  subir: subir,
+  download: download,
   imprimir: imprimir,
   DelEditAgenda: DelEditAgenda
 };

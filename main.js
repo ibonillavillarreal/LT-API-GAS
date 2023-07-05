@@ -1,13 +1,19 @@
+
 var express = require('express')
-var cors = require('cors')
+const bodyParser = require('body-parser');
+const multer = require('multer')
+
+
+
 var app = express();
+var cors = require('cors')
 var handleError = require('./middleware/handleError')
-var Router =  require('./routes/Index');
 require('dotenv').config()
+var Router =  require('./routes/Index');
 const porPORTmain = process.env.PORTmain || 4800;
 
 // constructor use app
-app.use(cors());
+
 
 // app.use((req,res,next)=>{
 //     res.header('Access-Control-Allow-Origin', ['*']);
@@ -19,13 +25,21 @@ app.use(cors());
 //     res.header('"Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization"');
 //     next();
 // });
+  app.use(cors());
+  app.use(express.json({extended:true, limit:'50mb'}));
+  app.use(express.urlencoded({extended:true, limit:'50mb'}));  
 
-app.use(express.json());
-app.use('/API',Router);
-app.use(handleError); //manejo de error status async
+ app.use(bodyParser.json());
+ app.use(bodyParser.urlencoded({extended:true}));  
 
-// lanzar al puerto 
+ app.use(express.json());
+ app.use('/API',Router);
+ app.use(handleError); //manejo de error status async
+
+ // lanzar al puerto 
 app.listen(porPORTmain, ()=>{
   console.log(` 🚀 Server API is running 🏍⛽ on port ${porPORTmain}`);
 });
+
+
 
