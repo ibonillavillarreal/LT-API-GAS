@@ -100,6 +100,7 @@ const editPersona = async (persona) => {
 
 const anularCliente = async (id_User) => {  
   try {
+    
     let pool = await sql.connect(conexion);
     let salida = await pool.request()
       .input('CodMiembro', sql.Int, id_User.id)

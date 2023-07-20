@@ -25,10 +25,12 @@ const getClientes = async (request, response,next) => {
 
 const addCliente = async (request, response,next) => {
   try {
-    const cliente = { ...request.body }
+    const cliente = { ...request.body}.regPersona
+    //console.log('Datos: '+ JSON.stringify(cliente))
     DBPersona.addCliente(cliente).then(data  => {
-    response.json(data);
-  })
+      response.json(data);
+    })
+    
   } catch (error) {
     next(error)      
   }
@@ -36,10 +38,12 @@ const addCliente = async (request, response,next) => {
 
 const editPersona = async (request, response,next) => {
   try {
-    const persona = { ...request.body }    
+    const persona = {...request.body}.regPersona    
+    console.log('Data :'+JSON.stringify(persona))
     DBPersona.editPersona(persona).then(data  => {
       response.json(data);
-  })
+    })
+    
   } catch (error) {
     next(error)
   }
@@ -62,11 +66,11 @@ const getClienteEdit = async (request, response,next) => {
 const anularCliente = async (request, response,next) => {
   try {
     const id = request.params.id
-    const id_User = {...request.body}
-
+    const id_User = {...request.body}.id_User
+    //console.log('Datos  '+JSON.stringify(id_User))
     DBPersona.anularCliente(id_User).then(data  => {    
-      response.json(data);
-  })
+      response.json(data);     
+    })
   } catch (error) {
     next(error)
   }

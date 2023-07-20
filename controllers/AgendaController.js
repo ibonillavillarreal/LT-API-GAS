@@ -38,10 +38,37 @@ const getNroAgenda = async (request, response, next) => {
 
 }
 
+//getInstitucion
+const getInstitucion = async (request, response, next) => {
+  try {
+    DBAgendas.getInstitucion().then((data) => {     
+      //console.log('instituciones : ' + JSON.stringify(data));
+      response.json(data);
+       
+    })
+  } catch (ex) {
+    next(ex)
+  }
+
+}
+
+//getConsejo
+const getConsejo = async (request, response, next) => {
+  try {
+    //console.log('getConsejo : ' );          
+       DBAgendas.getConsejo().then((data) => {               
+      response.json(data);       
+     })
+  } catch (ex) {
+    next(ex)
+  }
+
+}
+
 
 const add_Agenda = async (request, response, next) => {
   try {
-    let Agenda = { ...request.body };
+    let Agenda = {...request.body}.RegistroCompleto_json;
     let data = await DBAgendas.add_Agenda(Agenda)
     return response.json(data);
   } catch (error) {
@@ -51,7 +78,7 @@ const add_Agenda = async (request, response, next) => {
 
 const EditAgenda = async (request, response, next) => {
   try {
-    let Agenda = { ...request.body }
+    let Agenda = {...request.body}.RegistroCompleto_json
     let data = await DBAgendas.editAgenda(Agenda)
     return response.json(data);
   } catch (error) {
@@ -62,7 +89,7 @@ const EditAgenda = async (request, response, next) => {
 const DelEditAgenda = async (request, response, next) => {
 
   try {
-    let json_id = { ...request.body }
+    let json_id = {...request.body}.i
     let data = await DBAgendas.DelEditAgenda(json_id)
     response.json(data);
   } catch (error) {
@@ -76,6 +103,7 @@ const PDFDocument = require('pdfkit-construct');
 const stream = require('./stream');
 const getStream = require('get-stream');
 const fs = require('fs');
+const { json } = require('body-parser');
 
 const imprimir = async (req, res, next) => {
   try {
@@ -214,6 +242,8 @@ module.exports = {
   getAgendaId: getAgendaId,
   getAgenda: getAgenda,
   getNroAgenda: getNroAgenda,
+  getInstitucion:getInstitucion,
+  getConsejo:getConsejo,
   add_Agenda: add_Agenda,
   EditAgenda: EditAgenda,
   imprimir: imprimir,

@@ -76,7 +76,8 @@ const postgetPuntosDeAgenda = async (request, response, next) => {
 
 
 const Add_Json_Acta = async (request, response, next) => {
-  //console.log('llegando a controlador : ' + JSON.stringify(CodActa));
+   //console.log('llegando a controlador : ' + JSON.stringify(request.body));
+  
   try {
     let CodActa = { ...request.body };
     let data = await DBActas.Add_Json_Acta(CodActa);
@@ -103,10 +104,15 @@ const subir = async (request, response, next) => {
 }
 
 
-const download = (request, response, next) => {
+const download = async (request, response, next) => {
   const cod_acta = request.body.filename;
-  const directoryPath = path.join('D:/ProyectoCNU-cli/zSubidas/UpDocCodActa') + cod_acta + '.docx'; 
-  response.sendFile(directoryPath);
+  const directoryPath = path.join('D:/ProyectoCNU-cli/zSubidas/UpDocCodActa') + cod_acta + '.docx';
+  const path_dbData = await DBActas.pathActaDocx(cod_acta)   //extraer el path
+
+  //console.log('data directoryPath : ' + JSON.stringify(directoryPath));
+  //console.log('data path_dbData : ' + JSON.stringify(path_dbData));
+
+  return response.sendFile(path_dbData);
 };
 
 

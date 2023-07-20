@@ -31,14 +31,14 @@ const postgetPuntosDeAgenda = async (json_Cod_Agenda) => {
 
 
 const Add_Json_Acta = async (json_Cod_Acta) => {
-  //console.log('llegando a controlador : ' + JSON.stringify(json_Cod_Acta));
-  try {
+   console.log('llegando a controlador : ' + JSON.stringify(json_Cod_Acta));
 
+  try {
     let Acta_Maestro = json_Cod_Acta.Acta_ful.Acta_Maestro;
 
     let mssql = await sql.connect(conexion);
     let data = await mssql.request()
-      .input('CodActas', sql.Int, 0)
+      .input('CodActas', sql.Int, Acta_Maestro.CodActas) 
       .input('CodAgenda', sql.Int, Acta_Maestro.CodAgenda)
       .input('IdSesion', sql.NVarChar, Acta_Maestro.IdSesion)
       .input('TipoSesion', sql.Int, Acta_Maestro.TipoSesion)
@@ -51,19 +51,18 @@ const Add_Json_Acta = async (json_Cod_Acta) => {
       .execute('Legales.p_SavetbActas')
     let newCodActa = data.returnValue;
     
-
     let Acta_Detalle = json_Cod_Acta.Acta_ful.Acta_Detalle;
     let ultimoDetalle;
     Acta_Detalle.forEach(tbAcuerdos => {
       let retorno_DetalleAcuerdos = mssql.request()   
-        .input('CodAcuerdo', sql.Int,0)
-        .input('CodActa', sql.Int,newCodActa)
+        .input('CodAcuerdo', sql.Int,tbAcuerdos.CodAcuerdo) 
+        .input('CodActa', sql.Int,newCodActa) 
         .input('CodAgendaDetalles', sql.Int,tbAcuerdos.CodAgendaDetalles)
         .input('IdAcuerdos', sql.NVarChar,tbAcuerdos.IdAcuerdos)
         .input('Acuerdos', sql.NVarChar,tbAcuerdos.Acuerdos)
         .input('AudioAcuerdo', sql.NVarChar,tbAcuerdos.AudioAcuerdo)
         .input('EstadoAcuerdo', sql.Int,1)
-        .input('FechaRegistro', sql.Date,Date(new Date()))
+        .input('FechaRegistro', sql.Date,tbAcuerdos.FechaRegistro)
         .input('EstadoRegistro', sql.Int,1)
         .input('IdUsuario', sql.Int,1)
         .input('Operacion', sql.Int,1)
@@ -96,6 +95,21 @@ const editActaDocx = async (jsonPath) => {
   }
 }
 
+
+const pathActaDocx = async (cod_file) => {
+  try {
+    
+    let mssql = await sql.connect(conexion);
+    let UpDoc = await mssql.request()
+      .input('CodActas', sql.Int, cod_file)
+      .input('UpDoc', sql.NVarChar,'')      
+      .execute('Legales.p_Gettb_pathActaDocx')
+      return UpDoc.recordset[0].UpDoc;
+    
+  } catch (edit_err) {
+    console.log(edit_err);
+  }
+}
 
 
 
@@ -427,6 +441,7 @@ module.exports = {
   postgetPuntosDeAgenda: postgetPuntosDeAgenda,
   Add_Json_Acta: Add_Json_Acta,
   editActaDocx,
+  pathActaDocx,
   imprimir: imprimir,
   getActaId : getActaId,
   DelEditAgenda: DelEditAgenda,

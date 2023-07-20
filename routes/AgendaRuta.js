@@ -11,5 +11,8 @@ router.put('/',AgendaController.EditAgenda);
 router.get('/get/nro/',AgendaController.getNroAgenda); 
 router.post('/Eliminar/',AgendaController.DelEditAgenda);  
 router.get('/imprimir/print/:id',AgendaController.imprimir);  
+router.get('/Local/Institucion/',AgendaController.getInstitucion);  
+router.get('/Local/Consejo/',AgendaController.getConsejo);  
+
 
 module.exports = router;

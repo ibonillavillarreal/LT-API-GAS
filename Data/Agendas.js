@@ -12,13 +12,14 @@ const { time } = require('console');
 
 const add_Agenda = async (json_Agenda) => {
   try {
-
     let MasterAgenda = json_Agenda.Master_Agenda;
 
     let mssql = await sql.connect(conexion);
     let retorno_CodAgenda = await mssql.request()
       .input('CodAgenda', sql.Int, 0)
       .input('IdAgenda', sql.NVarChar, MasterAgenda.IdAgenda)
+      .input('TipoSesion', sql.Int, MasterAgenda.TipoSesion)
+      .input('idLocal', sql.Int, MasterAgenda.institucion)
       .input('Local', sql.NVarChar, MasterAgenda.Local)
       .input('DescripcionAgenda', sql.NVarChar, MasterAgenda.DescripcionAgenda)
       .input('EstadoAgenda', sql.Int, 1)
@@ -204,6 +205,33 @@ const getNroAgenda = async () => {
   }
 }
 
+//
+const getInstitucion = async () => {
+  try {
+    let mssql = await sql.connect(conexion);
+    let salida = await mssql.request()
+      .execute('Legales.p_GetInstituciones')
+    return salida.recordsets[0];
+
+  } catch (e) {
+    console.log(e)
+    return "0";
+  }
+}
+
+//getConsejo
+const getConsejo = async () => {
+  try {
+    let mssql = await sql.connect(conexion);
+    let salida = await mssql.request()
+      .execute('Legales.p_GetConsejo')
+    return salida.recordsets[0];
+
+  } catch (e) {
+    console.log(e)
+    return "0";
+  }
+}
 
 const getAgendaId = async (id) => {
   try {
@@ -278,6 +306,8 @@ module.exports = {
   getAgendaId: getAgendaId,
   getAgenda: getAgenda,
   getNroAgenda: getNroAgenda,
+  getInstitucion:getInstitucion,
+  getConsejo:getConsejo,
   add_Agenda: add_Agenda,
   editAgenda: editAgenda,
   imprimir, imprimir,
