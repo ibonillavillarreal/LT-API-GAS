@@ -73,7 +73,7 @@ const add_Agenda = async (json_Agenda) => {
     });
 
     // - - - 
-    return 1;
+    return CodAgenda;
 
   } catch (err) {
     console.log(err);
@@ -88,7 +88,9 @@ const editAgenda = async (json_Agenda) => {
     let mssql = await sql.connect(conexion);
     let retorno_CodAgenda = await mssql.request()
       .input('CodAgenda', sql.Int, MasterAgenda.CodAgenda)
-      .input('IdAgenda', sql.NVarChar, MasterAgenda.IdAgenda)
+      .input('IdAgenda', sql.NVarChar, MasterAgenda.IdAgenda)      
+      .input('TipoSesion', sql.Int, MasterAgenda.TipoSesion)
+      .input('idLocal', sql.Int, MasterAgenda.institucion)
       .input('Local', sql.NVarChar, MasterAgenda.Local)
       .input('DescripcionAgenda', sql.NVarChar, MasterAgenda.DescripcionAgenda)
       .input('EstadoAgenda', sql.Int, 1)
@@ -100,7 +102,7 @@ const editAgenda = async (json_Agenda) => {
       .input('Operacion', sql.Int, 4)
       .execute('Legales.p_SavetbAgendas')
     let CodAgenda = retorno_CodAgenda.returnValue;  
-    console.log('Hora como cadaena :' + JSON.stringify(MasterAgenda.HoraRegristro));
+    //console.log('Hora como cadaena :' + JSON.stringify(MasterAgenda.HoraRegristro));
 
     //- - -  limpia los item eliminados
     let itemDelete = json_Agenda.DeleteItem_AgendaAsistencia;

@@ -2,6 +2,7 @@
 
 ///////////// Modulos //////////////////////////////
 const DBAgendas = require('../Data/Agendas');
+const DBActas   = require('../Data/Acta');
 ////////////////////////////////////////////////////
 
 
@@ -69,8 +70,31 @@ const getConsejo = async (request, response, next) => {
 const add_Agenda = async (request, response, next) => {
   try {
     let Agenda = {...request.body}.RegistroCompleto_json;
+    console.log('Maestro Agenda: '+JSON.stringify(Agenda.Master_Agenda.lanzaActa));
     let data = await DBAgendas.add_Agenda(Agenda)
+    
+    //lanza Acta = true
+    if(Agenda.Master_Agenda.lanzaActa){
+      const IdActa = await DBActas.getNroActa();
+          
+      let Acta_Maestro = {
+      CodActas:0,       
+      CodAgenda:data,      
+      IdSesion:IdActa[0][0].newNroIdActa,     
+      TipoSesion:Agenda.Master_Agenda.TipoSesion,     
+      IdActaMembrete:49, 
+      Hora:Agenda.Master_Agenda.HoraRegristro,           
+      Local:Agenda.Master_Agenda.Local,            
+      ActaDedicatoria:'Modificar dedicatoria',
+      FechaSesion:Agenda.Master_Agenda.FechaRegristro,
+      EstadoActaX100:0, 
+      }
+      let dataActa = await DBActas.Add_Json_LazaActa(Acta_Maestro)      
+      return response.json(dataActa);
+    }
+
     return response.json(data);
+    
   } catch (error) {
     next(error)
   }
@@ -79,6 +103,7 @@ const add_Agenda = async (request, response, next) => {
 const EditAgenda = async (request, response, next) => {
   try {
     let Agenda = {...request.body}.RegistroCompleto_json
+    //console.log('Ageda : '+JSON.stringify(Agenda))
     let data = await DBAgendas.editAgenda(Agenda)
     return response.json(data);
   } catch (error) {
@@ -104,6 +129,7 @@ const stream = require('./stream');
 const getStream = require('get-stream');
 const fs = require('fs');
 const { json } = require('body-parser');
+const { stringify } = require('querystring');
 
 const imprimir = async (req, res, next) => {
   try {

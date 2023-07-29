@@ -76,8 +76,7 @@ const postgetPuntosDeAgenda = async (request, response, next) => {
 
 
 const Add_Json_Acta = async (request, response, next) => {
-   //console.log('llegando a controlador : ' + JSON.stringify(request.body));
-  
+   //console.log('llegando a controlador : ' + JSON.stringify(request.body));  
   try {
     let CodActa = { ...request.body };
     let data = await DBActas.Add_Json_Acta(CodActa);

@@ -31,14 +31,14 @@ const postgetPuntosDeAgenda = async (json_Cod_Agenda) => {
 
 
 const Add_Json_Acta = async (json_Cod_Acta) => {
-   console.log('llegando a controlador : ' + JSON.stringify(json_Cod_Acta));
-
+  console.log('llegando a controlador : ' + JSON.stringify(json_Cod_Acta));
   try {
     let Acta_Maestro = json_Cod_Acta.Acta_ful.Acta_Maestro;
+    let elCodActa = Acta_Maestro.CodActas;
 
     let mssql = await sql.connect(conexion);
     let data = await mssql.request()
-      .input('CodActas', sql.Int, Acta_Maestro.CodActas) 
+      .input('CodActas', sql.Int, elCodActa)
       .input('CodAgenda', sql.Int, Acta_Maestro.CodAgenda)
       .input('IdSesion', sql.NVarChar, Acta_Maestro.IdSesion)
       .input('TipoSesion', sql.Int, Acta_Maestro.TipoSesion)
@@ -50,26 +50,26 @@ const Add_Json_Acta = async (json_Cod_Acta) => {
       .input('EstadoActaX100', sql.Float, 0)
       .execute('Legales.p_SavetbActas')
     let newCodActa = data.returnValue;
-    
+
     let Acta_Detalle = json_Cod_Acta.Acta_ful.Acta_Detalle;
     let ultimoDetalle;
     Acta_Detalle.forEach(tbAcuerdos => {
-      let retorno_DetalleAcuerdos = mssql.request()   
-        .input('CodAcuerdo', sql.Int,tbAcuerdos.CodAcuerdo) 
-        .input('CodActa', sql.Int,newCodActa) 
-        .input('CodAgendaDetalles', sql.Int,tbAcuerdos.CodAgendaDetalles)
-        .input('IdAcuerdos', sql.NVarChar,tbAcuerdos.IdAcuerdos)
-        .input('Acuerdos', sql.NVarChar,tbAcuerdos.Acuerdos)
-        .input('AudioAcuerdo', sql.NVarChar,tbAcuerdos.AudioAcuerdo)
-        .input('EstadoAcuerdo', sql.Int,1)
-        .input('FechaRegistro', sql.Date,tbAcuerdos.FechaRegistro)
-        .input('EstadoRegistro', sql.Int,1)
-        .input('IdUsuario', sql.Int,1)
-        .input('Operacion', sql.Int,1)
+      console.log('Cod para detalle ',JSON.stringify(elCodActa));
+      let retorno_DetalleAcuerdos = mssql.request()
+        .input('CodAcuerdo', sql.Int, tbAcuerdos.CodAcuerdo)
+        .input('CodActa', sql.Int,(elCodActa==0)?newCodActa:elCodActa)
+        .input('CodAgendaDetalles', sql.Int, tbAcuerdos.CodAgendaDetalles)
+        .input('IdAcuerdos', sql.NVarChar, tbAcuerdos.IdAcuerdos)
+        .input('Acuerdos', sql.NVarChar, tbAcuerdos.Acuerdos)
+        .input('AudioAcuerdo', sql.NVarChar, tbAcuerdos.AudioAcuerdo)
+        .input('EstadoAcuerdo', sql.Int, 1)
+        .input('FechaRegistro', sql.Date, tbAcuerdos.FechaRegistro)
+        .input('EstadoRegistro', sql.Int, 1)
+        .input('IdUsuario', sql.Int, 1)
+        .input('Operacion', sql.Int, 1)
         .execute('Legales.p_SavetbAcuerdos')
-        ultimoDetalle = retorno_DetalleAcuerdos.returnValue
+      ultimoDetalle = retorno_DetalleAcuerdos.returnValue
     });
-
 
     return newCodActa;
   } catch (err) {
@@ -78,18 +78,44 @@ const Add_Json_Acta = async (json_Cod_Acta) => {
 
 }
 
+/***** */
+const Add_Json_LazaActa = async (json_Cod_Acta) => {
+  console.log('Generando Acta : ' + JSON.stringify(json_Cod_Acta));
+  try {
+    let Acta_Maestro = json_Cod_Acta; //.Acta_ful; //.Acta_Maestro;
 
+    let mssql = await sql.connect(conexion);
+    let data = await mssql.request()
+      .input('CodActas', sql.Int, Acta_Maestro.CodActas)
+      .input('CodAgenda', sql.Int, Acta_Maestro.CodAgenda)
+      .input('IdSesion', sql.NVarChar, Acta_Maestro.IdSesion)
+      .input('TipoSesion', sql.Int, Acta_Maestro.TipoSesion)
+      .input('IdActaMembrete', sql.Int, 49)
+      .input('Hora', sql.NVarChar, Acta_Maestro.Hora)
+      .input('Local', sql.NVarChar, Acta_Maestro.Local)
+      .input('ActaDedicatoria', sql.NVarChar, Acta_Maestro.ActaDedicatoria)
+      .input('FechaSesion', sql.Date, Acta_Maestro.FechaSesion)
+      .input('EstadoActaX100', sql.Float, 0)
+      .execute('Legales.p_SavetbActas')
+    let newCodActa = data.returnValue;
+    return newCodActa;
+  } catch (err) {
+    console.log(err);
+  }
+
+}
+/***** */
 
 const editActaDocx = async (jsonPath) => {
   try {
-    
+
     let mssql = await sql.connect(conexion);
     let UpDoc = await mssql.request()
       .input('CodActas', sql.Int, jsonPath.cod_file)
-      .input('UpDoc', sql.NVarChar, jsonPath.urlFileName)      
+      .input('UpDoc', sql.NVarChar, jsonPath.urlFileName)
       .execute('Legales.p_SavetbActaDocx')
-      return UpDoc.recordset[0].UpDoc;
-    
+    return UpDoc.recordset[0].UpDoc;
+
   } catch (edit_err) {
     console.log(edit_err);
   }
@@ -98,14 +124,14 @@ const editActaDocx = async (jsonPath) => {
 
 const pathActaDocx = async (cod_file) => {
   try {
-    
+
     let mssql = await sql.connect(conexion);
     let UpDoc = await mssql.request()
       .input('CodActas', sql.Int, cod_file)
-      .input('UpDoc', sql.NVarChar,'')      
+      .input('UpDoc', sql.NVarChar, '')
       .execute('Legales.p_Gettb_pathActaDocx')
-      return UpDoc.recordset[0].UpDoc;
-    
+    return UpDoc.recordset[0].UpDoc;
+
   } catch (edit_err) {
     console.log(edit_err);
   }
@@ -150,9 +176,9 @@ const getNroIdAcuerdo = async () => {
     let mssql = await sql.connect(conexion);
     let salida = await mssql.request()
       .execute('Legales.p_GetNroIdAcuerdo')
-     
-      //console.log('data salida : '+JSON.stringify(salida.recordset[0].newNroIdAcuerdo))   
-      return salida.recordset[0].newNroIdAcuerdo;
+
+    //console.log('data salida : '+JSON.stringify(salida.recordset[0].newNroIdAcuerdo))   
+    return salida.recordset[0].newNroIdAcuerdo;
 
   } catch (e) {
     console.log(e)
@@ -164,7 +190,7 @@ const getNroIdAcuerdo = async () => {
 const getActaDetalleId = async (id) => {
   try {
     let maestro;
-        console.log('Id valor CodActa : '+ JSON.stringify(id));
+    console.log('Id valor CodActa : ' + JSON.stringify(id));
 
     let mssql = await sql.connect(conexion);
     let salida_maestro = await mssql.request()
@@ -266,19 +292,19 @@ const getActaId = async (id) => {
       .input('CodAgenda', sql.Int, maestro[0].CodAgenda)
       .input('EstadoRegistro', sql.Int, 1)
       .execute('Legales.p_GetRepreClaustro');  //p_GetRepreClaustro 
-      RepreClaustro = salida_RepreClaustro.recordsets[0];
-    
+    RepreClaustro = salida_RepreClaustro.recordsets[0];
+
     let salida_agendaDedicatoria = await mssql.request()
       .input('CodAgenda', sql.Int, maestro[0].CodAgenda)
       .input('EstadoRegsistro', sql.Int, 1)
       .execute('Legales.p_GetDedicatoriaAgendaActa');  //p_GetDedicatoriaAgendaActa
-      agendaDedicatoria = salida_agendaDedicatoria.recordsets[0];
+    agendaDedicatoria = salida_agendaDedicatoria.recordsets[0];
 
-      let salida_GetPuntosDeAgenda = await mssql.request()
+    let salida_GetPuntosDeAgenda = await mssql.request()
       .input('CodAgenda', sql.Int, maestro[0].CodAgenda)
       .input('EstadoRegsistro', sql.Int, 1)
       .execute('Legales.p_GetPuntosDeAgenda');  //p_GetPuntosDeAgenda
-      GetPuntosDeAgenda = salida_GetPuntosDeAgenda.recordsets[0];
+    GetPuntosDeAgenda = salida_GetPuntosDeAgenda.recordsets[0];
 
 
     let salida_acuerdos = await mssql.request()
@@ -288,21 +314,23 @@ const getActaId = async (id) => {
     puntosAcuerdos = salida_acuerdos.recordsets[0];
 
     let salida_firmasPresidenta = await mssql.request()
-      .input('CdoMiembro', sql.Int,8)
+      .input('CdoMiembro', sql.Int, 8)
       .input('EstadoRegistro', sql.Int, 1)
       .execute('RRHH.p_GetFirmas');  //p_GetFirmas
-      firmasPresidenta = salida_firmasPresidenta.recordsets[0];
+    firmasPresidenta = salida_firmasPresidenta.recordsets[0];
 
-       
-      let salida_firmasSecretario = await mssql.request()
-      .input('CdoMiembro', sql.Int,9)
+
+    let salida_firmasSecretario = await mssql.request()
+      .input('CdoMiembro', sql.Int, 9)
       .input('EstadoRegistro', sql.Int, 1)
       .execute('RRHH.p_GetFirmas');  //p_GetFirmas
-      firmasSecretario = salida_firmasSecretario.recordsets[0];
+    firmasSecretario = salida_firmasSecretario.recordsets[0];
 
-    json_Acta = { Maestro: maestro, agendaActa: agendaActa, puntosAcuerdos: puntosAcuerdos, 
-                  AgendaDedicatoria:agendaDedicatoria, GetPuntosDeAgenda:GetPuntosDeAgenda, 
-                  RepreClaustro: RepreClaustro, firmasPresidenta:firmasPresidenta, firmasSecretario:firmasSecretario}
+    json_Acta = {
+      Maestro: maestro, agendaActa: agendaActa, puntosAcuerdos: puntosAcuerdos,
+      AgendaDedicatoria: agendaDedicatoria, GetPuntosDeAgenda: GetPuntosDeAgenda,
+      RepreClaustro: RepreClaustro, firmasPresidenta: firmasPresidenta, firmasSecretario: firmasSecretario
+    }
 
     return json_Acta
   } catch (e) {
@@ -317,116 +345,116 @@ const PDFDocument = require("pdfkit");
 //
 class PDFDocumentWithTables extends PDFDocument {
   constructor(options) {
-      super(options);
+    super(options);
   }
 
   table(table, arg0, arg1, arg2) {
-      let startX = this.page.margins.left, startY = this.y;
-      let options = {};
+    let startX = this.page.margins.left, startY = this.y;
+    let options = {};
 
-      if ((typeof arg0 === "number") && (typeof arg1 === "number")) {
-          startX = arg0;
-          startY = arg1;
+    if ((typeof arg0 === "number") && (typeof arg1 === "number")) {
+      startX = arg0;
+      startY = arg1;
 
-          if (typeof arg2 === "object")
-              options = arg2;
-      } else if (typeof arg0 === "object") {
-          options = arg0;
-      }
+      if (typeof arg2 === "object")
+        options = arg2;
+    } else if (typeof arg0 === "object") {
+      options = arg0;
+    }
 
-      const columnCount = table.headers.length;
-      const columnSpacing = options.columnSpacing || 15;
-      const rowSpacing = options.rowSpacing || 5;
-      const usableWidth = options.width || (this.page.width - this.page.margins.left - this.page.margins.right);
+    const columnCount = table.headers.length;
+    const columnSpacing = options.columnSpacing || 15;
+    const rowSpacing = options.rowSpacing || 5;
+    const usableWidth = options.width || (this.page.width - this.page.margins.left - this.page.margins.right);
 
-      const prepareHeader = options.prepareHeader || (() => { });
-      const prepareRow = options.prepareRow || (() => { });
-      const computeRowHeight = (row) => {
-          let result = 0;
+    const prepareHeader = options.prepareHeader || (() => { });
+    const prepareRow = options.prepareRow || (() => { });
+    const computeRowHeight = (row) => {
+      let result = 0;
 
-          row.forEach((cell) => {
-              const cellHeight = this.heightOfString(cell, {
-                  width: columnWidth,
-                  align: "left"
-              });
-              result = Math.max(result, cellHeight);
-          });
-
-          return result + rowSpacing;
-      };
-
-      const columnContainerWidth = usableWidth / columnCount;
-      const columnWidth = columnContainerWidth - columnSpacing;
-      const maxY = this.page.height - this.page.margins.bottom;
-
-      let rowBottomY = 0;
-
-      this.on("pageAdded", () => {
-          startY = this.page.margins.top;
-          rowBottomY = 0;
+      row.forEach((cell) => {
+        const cellHeight = this.heightOfString(cell, {
+          width: columnWidth,
+          align: "left"
+        });
+        result = Math.max(result, cellHeight);
       });
 
-      // Allow the user to override style for headers
-      prepareHeader();
+      return result + rowSpacing;
+    };
 
-      // Check to have enough room for header and first rows
-      if (startY + 3 * computeRowHeight(table.headers) > maxY)
-          this.addPage();
+    const columnContainerWidth = usableWidth / columnCount;
+    const columnWidth = columnContainerWidth - columnSpacing;
+    const maxY = this.page.height - this.page.margins.bottom;
 
-      // Print all headers
-      table.headers.forEach((header, i) => {
-          this.font("Courier-Bold").fontSize(10).text(header, startX + i * columnContainerWidth, startY, {
-              width: columnWidth,
-              align: "left"
-          });
+    let rowBottomY = 0;
+
+    this.on("pageAdded", () => {
+      startY = this.page.margins.top;
+      rowBottomY = 0;
+    });
+
+    // Allow the user to override style for headers
+    prepareHeader();
+
+    // Check to have enough room for header and first rows
+    if (startY + 3 * computeRowHeight(table.headers) > maxY)
+      this.addPage();
+
+    // Print all headers
+    table.headers.forEach((header, i) => {
+      this.font("Courier-Bold").fontSize(10).text(header, startX + i * columnContainerWidth, startY, {
+        width: columnWidth,
+        align: "left"
+      });
+    });
+
+    // Refresh the y coordinate of the bottom of the headers row
+    rowBottomY = Math.max(startY + computeRowHeight(table.headers), rowBottomY);
+
+    // Separation line between headers and rows
+    this.moveTo(startX, rowBottomY - rowSpacing * 0.5)
+      .lineTo(startX + usableWidth, rowBottomY - rowSpacing * 0.5)
+      .lineWidth(2)
+      .stroke();
+
+    table.rows.forEach((row, i) => {
+      const rowHeight = computeRowHeight(row);
+
+      // Switch to next page if we cannot go any further because the space is over.
+      // For safety, consider 3 rows margin instead of just one
+      if (startY + 3 * rowHeight < maxY)
+        startY = rowBottomY + rowSpacing;
+      else
+        this.addPage();
+
+      // Allow the user to override style for rows
+      prepareRow(row, i);
+
+      // Print all cells of the current row
+      row.forEach((cell, i) => {
+        this.text(cell, startX + i * columnContainerWidth, startY, {
+          width: columnWidth,
+          align: "left"
+        });
       });
 
-      // Refresh the y coordinate of the bottom of the headers row
-      rowBottomY = Math.max(startY + computeRowHeight(table.headers), rowBottomY);
+      // Refresh the y coordinate of the bottom of this row
+      rowBottomY = Math.max(startY + rowHeight, rowBottomY);
 
-      // Separation line between headers and rows
-      this.moveTo(startX, rowBottomY - rowSpacing * 0.5)
-          .lineTo(startX + usableWidth, rowBottomY - rowSpacing * 0.5)
-          .lineWidth(2)
-          .stroke();
+      // Separation line between rows
+      this.moveTo(startX, rowBottomY - rowSpacing * 0.3)
+        .lineTo(startX + usableWidth, rowBottomY - rowSpacing * 0.3)
+        .lineWidth(1)
+        .opacity(0.7)
+        .stroke()
+        .opacity(1); // Reset opacity after drawing the line
+    });
 
-      table.rows.forEach((row, i) => {
-          const rowHeight = computeRowHeight(row);
+    this.x = startX;
+    this.moveDown();
 
-          // Switch to next page if we cannot go any further because the space is over.
-          // For safety, consider 3 rows margin instead of just one
-          if (startY + 3 * rowHeight < maxY)
-              startY = rowBottomY + rowSpacing;
-          else
-              this.addPage();
-
-          // Allow the user to override style for rows
-          prepareRow(row, i);
-
-          // Print all cells of the current row
-          row.forEach((cell, i) => {
-              this.text(cell, startX + i * columnContainerWidth, startY, {
-                  width: columnWidth,
-                  align: "left"
-              });
-          });
-
-          // Refresh the y coordinate of the bottom of this row
-          rowBottomY = Math.max(startY + rowHeight, rowBottomY);
-
-          // Separation line between rows
-          this.moveTo(startX, rowBottomY - rowSpacing * 0.3)
-              .lineTo(startX + usableWidth, rowBottomY - rowSpacing * 0.3)
-              .lineWidth(1)
-              .opacity(0.7)
-              .stroke()
-              .opacity(1); // Reset opacity after drawing the line
-      });
-
-      this.x = startX;
-      this.moveDown();
-
-      return this;
+    return this;
   }
 }
 
@@ -440,10 +468,11 @@ module.exports = {
   getAgendaActa,
   postgetPuntosDeAgenda: postgetPuntosDeAgenda,
   Add_Json_Acta: Add_Json_Acta,
+  Add_Json_LazaActa:Add_Json_LazaActa,
   editActaDocx,
   pathActaDocx,
   imprimir: imprimir,
-  getActaId : getActaId,
+  getActaId: getActaId,
   DelEditAgenda: DelEditAgenda,
   PDFDocumentWithTables
 };
