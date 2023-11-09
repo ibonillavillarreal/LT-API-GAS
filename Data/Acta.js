@@ -314,14 +314,14 @@ const getActaId = async (id) => {
     puntosAcuerdos = salida_acuerdos.recordsets[0];
 
     let salida_firmasPresidenta = await mssql.request()
-      .input('CdoMiembro', sql.Int, 8)
+      .input('CodMiembro', sql.Int, 8)
       .input('EstadoRegistro', sql.Int, 1)
       .execute('RRHH.p_GetFirmas');  //p_GetFirmas
     firmasPresidenta = salida_firmasPresidenta.recordsets[0];
 
 
     let salida_firmasSecretario = await mssql.request()
-      .input('CdoMiembro', sql.Int, 9)
+      .input('CodMiembro', sql.Int, 9)
       .input('EstadoRegistro', sql.Int, 1)
       .execute('RRHH.p_GetFirmas');  //p_GetFirmas
     firmasSecretario = salida_firmasSecretario.recordsets[0];

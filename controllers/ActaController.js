@@ -191,16 +191,16 @@ const imprimir = async (req, res, next) => {
     else { SESION = `SESIÓN EXTRAORDINARIA VIRTUAL` }
 
     /////// Pintar EL MEMBRETE   
-    Doc.image('./rept/logo-cnu.png', Xi, Yi, { align: 'center', fit: [190, 190], }).stroke();
-    Doc.fill("#000000").font('Times-Bold').fontSize(12).text(MEMBRETE, Xi - 160, Yi + 80, { width: 500, align: 'center' });
-    Doc.fill("#000000").font('Times-Bold').fontSize(12).text(SESION + ' No. ' + IdActaSesion + ', DEL ' + FechaSesion, Xi - 160, Yi + 100, { width: 500, align: 'center' });
+    Doc.image('./rept/logo-cnu.png', Xi, Yi, { align: 'center', fit: [180, 180], }).stroke();
+    Doc.fill("#000000").font('Times-Bold').fontSize(11).text(MEMBRETE, Xi - 160, Yi + 80, { width: 500, align: 'center' });
+    Doc.fill("#000000").font('Times-Bold').fontSize(11).text(SESION + ' No. ' + IdActaSesion + ', DEL ' + FechaSesion, Xi - 160, Yi + 100, { width: 500, align: 'center' });
 
 
     //-------------------------------------------------------------------------------------//  
     ////  GOTO : Direcciones de la Cabecera 
     ////  Pintar INICIO Y DEDICATORAS             
     let X = 50;
-    let Y = 180;
+    let Y = 165;
     if (TipoSesion === 'Ordinaria-Virtual') {
       Doc.font('Times-Bold').fontSize(12).text('Inicio : ' + Hora, X, Y, { width: 400, align: 'left' });
       Doc.font('Times-Bold').fontSize(12).text('Local  : ' + 'Por llamada Zoom', X, Y + 20, { width: 400, align: 'left' });
@@ -216,7 +216,7 @@ const imprimir = async (req, res, next) => {
     //-------------------------------------------------------------------------------------//  
     ////  GOTO : Direcciones del Cuerpo
     let Xc = 50;
-    let Yc = 230;
+    let Yc = 215;
     let contador_YC = 0;
 
     Doc.font('Times-Bold').fontSize(12)
@@ -227,8 +227,8 @@ const imprimir = async (req, res, next) => {
     const ActaDedicatoria = strActa_Completa.Maestro;  //ActaDedicatoria    
     ActaDedicatoria.forEach(reg => {
       Doc.font('Times-Roman').fontSize(13)
-        .text(reg.ActaDedicatoria, Xc, Yc, { width: 400, align: 'left' });
-    });
+         .text(reg.ActaDedicatoria, Xc, Yc, { width: 400, align: 'left' });
+        });
     const nfilas = ActaDedicatoria[0].ActaDedicatoria.split(/\n/);
     contador_YC = contador_YC + (nfilas.length * 15);
     Yc = Yc + contador_YC;
@@ -251,7 +251,8 @@ const imprimir = async (req, res, next) => {
         prepareRow: () => { Doc.font("Times-Roman").fontSize(13) },
         width: 500, columnsSize: [500],
       });
-    Yc = Yc + contador_YC;
+    //console.log('Filas rows : '+ ((table.rows.length + 2) *20));
+    Yc = Yc + ((table.rows.length + 2) * 20);    
     Doc.fontSize(12).text('  ', Xc, Yc, { width: 400, align: 'left' });
 
     //-------------------------------------------------------------------------------------//  
@@ -278,10 +279,9 @@ const imprimir = async (req, res, next) => {
         prepareRow: () => { Doc.font("Times-Roman").fontSize(13) },
         width: 500, columnsSize: [500], border: null,
       });
-    Yc = Yc + contador_YC;
+    //Yc = Yc + contador_YC;
+    Yc = Yc + ((tablePuntosDeAgenda.rows.length + 2) * 20);    
     Doc.fontSize(12).text(' ', Xc, Yc, { width: 400, align: 'left' });
-
-
 
     //-------------------------------------------------------------------------------------//  
     //Doc.font('Times-Bold').fontSize(12).text('Acuerdos: ', Xc, Yc, { width: 400, align: 'left', underline: true });
@@ -299,9 +299,9 @@ const imprimir = async (req, res, next) => {
         width: 500, columnsSize: [500], border: null
       });
 
-    Yc = Yc + contador_YC;
+    //Yc = Yc + contador_YC;
+    Yc = Yc + ((tablepuntosAcuerdos.rows.length + 2) * 20);    
     Doc.fontSize(12).text('', Xc, Yc, { width: 400, align: 'left' });
-
 
     //-------------------------------------------------------------------------------------//  
     ////// las Firmas del Acta     
@@ -313,19 +313,23 @@ const imprimir = async (req, res, next) => {
     contador_YC = 30;
     Yc = Yc + contador_YC;
     Doc.font('Times-Bold').fontSize(12).text('______________________________', Xc, Yc, { width: 500, align: 'left' });
-    Doc.font('Times-Bold').fontSize(12).text('_______________________________', Xc + 300, Yc, { width: 500, align: 'left' });
+    Doc.font('Times-Bold').fontSize(12).text('______________________________', Xc + 300, Yc, { width: 500, align: 'left' });
     contador_YC = 15;
     Yc = Yc + contador_YC;
-    Doc.font('Times-Bold').fontSize(12).text(firmasPresidenta, Xc, Yc + 15, { width: 500, align: 'left' });
-    Doc.font('Times-Bold').fontSize(12).text(firmasSecretario, Xc + 300, Yc + 15, { width: 500, align: 'left' });
+    Doc.font('Times-Bold').fontSize(12).text(firmasPresidenta, Xc, Yc + 10, { width: 500, align: 'left' });
+    Doc.font('Times-Bold').fontSize(12).text(firmasSecretario, Xc + 300, Yc + 10, { width: 500, align: 'left' });
 
     //-------------------------------------------------------------------------------------//  
     ///////bit-Footer      
     contador_YC = 30;
     Yc = Yc + contador_YC;
-    Doc.image('./rept/bit-Foother.png', Xc, Yc, { fit: [500, 300] }).stroke();
-
-
+    Doc.font('Courier-BoldOblique').fontSize(8).text('Cc.: Presidenta del CNU', Xc, Yc=Yc+10, { width: 400, align:'left'});
+    Doc.font('Courier-BoldOblique').fontSize(8).text('Secretario Técnico del CNU', Xc, Yc=Yc+10, { width: 400, align:'left'});
+    Doc.font('Courier-BoldOblique').fontSize(8).text('Archivo /REFD mlbm.*', Xc, Yc=Yc+10, { width: 400, align: 'left'});
+    Doc.font('Courier-BoldOblique').fontSize(8).text('Tels: (505) 2266-2807, 2266-2835, 2266-9472, 2266-9467, 2266-9468', Xc, Yc=Yc+10, { width: 400, align: 'left' });
+    Doc.font('Courier-BoldOblique').fontSize(8).text('Apartado Postal: Managua, Nicaragua', Xc, Yc=Yc+10, {width: 400, align: 'left'});
+    
+    //Doc.image('./rept/bit-Foother.png', Xc, Yc, { fit: [500, 300] }).stroke();
     //-------------------------------------------------------------------------------------//  
     /////  cierre del Doc
     Doc.end();
